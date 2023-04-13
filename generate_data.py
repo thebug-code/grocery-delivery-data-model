@@ -103,8 +103,8 @@ def generate_address():
     min_addresses = 100
     max_addresses = 1000
 
-    # Este archivo se guardara en la misma carpeta que este script
-    file_path = os.path.join(basedir, 'us_address_data.csv')
+    # Este archivo se guardara en la carpeta us_data
+    file_path = os.path.join(basedir, 'us_data', 'us_addresses.csv')
     
     # Abre un nuevo archivo CSV en modo de escritura y escribe los encabezados
     with open(file_path, 'w', newline='') as f:
@@ -149,8 +149,8 @@ def build_cvs_city():
     # Encabezados del archivo CSV
     headers = ['City', 'State', 'Population']
 
-    # Este archivo se guardara en la misma carpeta que este script
-    file_path = os.path.join(basedir, 'us_cities.csv')
+    # Este archivo se guardara en la carpeta us_data
+    file_path = os.path.join(basedir, 'us_data', 'us_cities.csv')
     
     # Abre un nuevo archivo CSV en modo de escritura y escribe los encabezados
     with open(file_path, 'w', newline='') as f:
@@ -186,7 +186,7 @@ def rebuild_csv_name():
     headers = ['Name']
 
     # Output file path
-    file_path = os.path.join(basedir, 'us_names.csv')
+    file_path = os.path.join(basedir, 'us_data', 'us_names.csv')
 
     # Escribir los nombres en el archivo CSV
     with open(file_path, 'w', newline='') as f:
@@ -221,8 +221,8 @@ def build_surnames_csv():
     data = response.json()
     surnames = [row[0] for row in data[1:]]
     
-    # Este archivo se guardara en la misma carpeta que este script
-    file_path = os.path.join(basedir, 'us_surnames.csv')
+    # Este archivo se guardara en la misma carpeta us_data
+    file_path = os.path.join(basedir, 'us_data', 'us_surnames.csv')
     
     # Escribe los apellidos en el archivo CSV
     with open(file_path, 'w', newline='') as f:
@@ -238,8 +238,8 @@ def rebuild_csv_products():
     Reconstruye el archivo CSV con los productos del dataset BigBasket Products
     """
     # Establece los nombres de archivo de entrada y salida
-    input_file_path = os.path.join(basedir, 'BigBasket.csv')
-    output_file_path = os.path.join(basedir, 'products.csv')
+    input_file_path = os.path.join(basedir, 'us_data_base', 'BigBasket.csv')
+    output_file_path = os.path.join(basedir, 'us_data', 'products.csv')
     
     # Extract the 'Product Name', 'Discounted Price', 'Image url', and 'Category' columns
     columns_to_extract = [0, 3, 4, 6]
