@@ -1,6 +1,7 @@
 from faker import Faker
 import os
 import random
+import requests
 import csv
 
 # Initialize Faker with 'en_US' locale
@@ -169,6 +170,42 @@ def build_cvs_city():
             writer.writerow([city_name, state, population])
         
 
+def build_surnames_csv():
+    """
+    Construye el archivo CSV con los 1000 apellidos mas comunes en Estados Unidos
+    """
+    # Set the API endpoint URL
+    url = 'https://api.census.gov/data/2010/surname'
+    api_key = '2a11f280de217a1af0066795ea6e5345f4e0e758'
+
+
+    # Set the query parameters
+    params = {
+        'get': 'NAME,COUNT',
+        'RANK': '1:1000',
+        'key': api_key
+    }
+    
+    # Send an HTTP GET request to the API endpoint with the specified parameters
+    response = requests.get(url, params=params)
+    
+    # Pasea la respuesta JSON y extrae los apellidos
+    data = response.json()
+    surnames = [row[0] for row in data[1:]]
+    
+    # Este archivo se guardara en la misma carpeta que este script
+    file_path = os.path.join(basedir, 'us_surnames.csv')
+    
+    # Escribe los apellidos en el archivo CSV
+    with open(file_path, 'w', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(['Surname'])
+    
+        for surname in surnames:
+            writer.writerow([surname])
+    
+    
 if __name__ == '__main__':
     #generate_address()
-    build_cvs_city()
+    #build_cvs_city()
+    build_surnames_csv()

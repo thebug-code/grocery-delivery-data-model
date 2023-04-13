@@ -35,7 +35,7 @@ CREATE TABLE ITEM (
 
 --SECCION 2
 CREATE TABLE EMPLOYEE(
-	id  serial PRIMARY KEY,
+	id serial PRIMARY KEY,
 	employe_code varchar(32),
 	first_name varchar(64),
 	last_name varchar(64)
