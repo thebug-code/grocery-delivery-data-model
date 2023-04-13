@@ -203,9 +203,35 @@ def build_surnames_csv():
     
         for surname in surnames:
             writer.writerow([surname])
+
+
+def rebuild_csv_products():
+    """
+    Reconstruye el archivo CSV con los productos del dataset BigBasket Products
+    """
+    # Establece los nombres de archivo de entrada y salida
+    input_file_path = os.path.join(basedir, 'BigBasket.csv')
+    output_file_path = os.path.join(basedir, 'products.csv')
+    
+    # Extract the 'Product Name', 'Discounted Price', 'Image url', and 'Category' columns
+    columns_to_extract = [0, 3, 4, 6]
+    
+    # Lee el archivo CSV de entrada como una lista de listas
+    with open(input_file_path, 'r', newline='') as csvfile:
+        reader = csv.reader(csvfile)
+        data = [row for row in reader]
+    
+    # Extrae las columnas deseadas en una nueva lista de listas
+    new_data = [[row[i] for i in columns_to_extract] for row in data]
+    
+    # Escriba la nueva lista de listas en el archivo CSV de salida
+    with open(output_file_path, 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerows(new_data)
     
     
 if __name__ == '__main__':
     #generate_address()
     #build_cvs_city()
-    build_surnames_csv()
+    #build_surnames_csv()
+    rebuild_csv_products()
