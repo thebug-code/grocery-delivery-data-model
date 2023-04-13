@@ -3,6 +3,7 @@ import os
 import random
 import requests
 import csv
+import pandas as pd
 
 # Initialize Faker with 'en_US' locale
 fake = Faker('en_US')
@@ -169,6 +170,33 @@ def build_cvs_city():
             # Escribe la direccion en el archivo CSV
             writer.writerow([city_name, state, population])
         
+def rebuild_csv_name():
+    """
+    Recontruye el archivo CSV babynames-clean.csv con los nombres mas comunes
+    de bebes nacidos en Estados Unidos
+    """
+    # Lee el archivo CSV con los datos
+    df = pd.read_csv('https://query.data.world/s/abwjmshzgnttjwnowziip2h2srni6k?dws=00000')
+    data = df.values
+    
+    # Extrae los nombres y los guarda en una lista
+    names = [name[0] for name in data]
+
+    # Encabezados del archivo CSV
+    headers = ['Name']
+
+    # Output file path
+    file_path = os.path.join(basedir, 'us_names.csv')
+
+    # Escribir los nombres en el archivo CSV
+    with open(file_path, 'w', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(headers)
+
+        # Escribe los nombres en el archivo CSV
+        for name in names:
+            writer.writerow([name])
+
 
 def build_surnames_csv():
     """
@@ -234,4 +262,5 @@ if __name__ == '__main__':
     #generate_address()
     #build_cvs_city()
     #build_surnames_csv()
-    rebuild_csv_products()
+    #rebuild_csv_products()
+    rebuild_csv_name()
