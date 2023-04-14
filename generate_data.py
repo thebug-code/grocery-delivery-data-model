@@ -121,7 +121,6 @@ def generate_address():
     relative_populations = [population / total_population for population in populations]
 
     # Encabezados del archivo CSV
-    # headers = ['Name', 'Street Address', 'City', 'State', 'Zip Code']
     headers = ['street_address', 'city', 'state', 'zip_code']
 
     # Numero minimo y maximo de direcciones a generar para cada ciudad

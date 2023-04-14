@@ -45,11 +45,18 @@ psql \
       -a -f "base_tables.sql"
 
 psql \
-      -U "$user" \
       -h "$host" \
       -p "$port" \
+      -U "$user" \
       -d "$database" \
       -c "\\copy us_cities from 'us_data/us_cities.csv' (format 'csv', header, quote '\"')"
+
+psql \
+     -h "$host" \
+     -p "$port" \
+     -U "$user" \
+     -d "$database" \
+     -c "\\copy us_addresses from 'us_data/us_addresses.csv' (format 'csv', header, quote '\"')"
 
 # Inicia el servidor
 psql \
