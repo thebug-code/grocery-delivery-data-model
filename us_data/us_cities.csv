@@ -1,4 +1,4 @@
-city,zip_code,state,population
+city,postal_code,state,population
 New York,10001,NY,8336817
 Los Angeles,90001,CA,3970219
 Chicago,60601,IL,2693976

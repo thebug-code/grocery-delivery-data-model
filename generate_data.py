@@ -82,8 +82,7 @@ states = [
 ]
 
 # Define los codigos postales de las 20 ciudades mas pobladas de Estados Unidos
-
-zip_codes = [
+postal_code = [
     '10001',
     '90001',
     '60601',
@@ -121,7 +120,7 @@ def generate_address():
     relative_populations = [population / total_population for population in populations]
 
     # Encabezados del archivo CSV
-    headers = ['street_address', 'city', 'state', 'zip_code']
+    headers = ['street_address', 'city', 'state', 'postal_code']
 
     # Numero minimo y maximo de direcciones a generar para cada ciudad
     min_addresses = 100
@@ -161,7 +160,7 @@ def generate_address():
                 state = states[i]
 
                 # Zip code aleatorio
-                zip_code = fake.zipcode()
+                zip_code = postal_code[i]
     
                 # Escribe la direccion en el archivo CSV
                 writer.writerow([street_address, city_name, state, zip_code])
@@ -171,7 +170,7 @@ def build_cvs_city():
     Contruye el archivo CSV con las 20 ciudades mas pobladas de Estados Unidos
     """
     # Encabezados del archivo CSV
-    headers = ['city', 'zip_code', 'state', 'population']
+    headers = ['city', 'postal_code', 'state', 'population']
 
     # Este archivo se guardara en la carpeta us_data
     file_path = os.path.join(basedir, 'us_data', 'us_cities.csv')
@@ -189,7 +188,7 @@ def build_cvs_city():
             state = states[i]
 
             # Zip code aleatorio
-            zip_code = zip_codes[i]
+            zip_code = postal_code[i]
 
             # Obtiene la poblacion de la ciudad de la lista de poblaciones
             population = populations[i]
@@ -290,4 +289,4 @@ if __name__ == '__main__':
     build_cvs_city()
     #build_surnames_csv()
     #rebuild_csv_products()
-    #rebuild_csv_name()
+    rebuild_csv_name()
