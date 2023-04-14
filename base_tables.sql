@@ -5,7 +5,7 @@ DROP TABLE IF EXISTS US_LAST_NAMES;
 
 CREATE TABLE US_CITIES (
     city varchar(128),
-    zip_code varchar(5),
+    postal_code varchar(5) PRIMARY KEY,
     state varchar(3),
     population integer
 );
@@ -14,7 +14,7 @@ CREATE TABLE US_ADDRESSES (
     street varchar(128),
     city varchar(128),
     state varchar(3),
-    zip_code varchar(5)
+    postal_code varchar(5)
 );
 
 CREATE TABLE US_FIRST_NAMES (
@@ -23,4 +23,11 @@ CREATE TABLE US_FIRST_NAMES (
 
 CREATE TABLE US_LAST_NAMES (
     last_name varchar(128)
+);
+
+CREATE TABLE AREA_CODES (
+  id SERIAL PRIMARY KEY,
+  area_code Varchar(3),
+  postal_code VARCHAR(50),
+  CONSTRAINT fk_area_code_postal_code FOREIGN KEY(postal_code) REFERENCES us_cities(postal_code)
 );

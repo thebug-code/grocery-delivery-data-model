@@ -282,11 +282,54 @@ def rebuild_csv_products():
     with open(output_file_path, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerows(new_data)
+
+def buid_csv_area_codes():
+    """
+    Construye el archivo CSV con los codigos de area de las 20 ciudades mas pobladas de Estados Unidos
+    """
+    area_codes = [
+        ['212', '332', '646', '917'],
+        ['213', '310', '323', '661', '747', '818'],
+        ['312', '773', '872'],
+        ['281', '346', '713', '832'],
+        ['480', '602', '623', '928'],
+        ['215', '267', '445', '484', '610', '717', '835', '878'],
+        ['210', '726'],
+        ['619', '858'],
+        ['214', '469', '972'],
+        ['408', '669'],
+        ['512', '737'],
+        ['904', '386'],
+        ['682', '817'],
+        ['614'],
+        ['415', '628'],
+        ['704', '980'],
+        ['317'],
+        ['206', '253', '360', '425', '564'],
+        ['303', '720'],
+        ['202']
+    ]
+
+    # Create a list of tuples with the area code and postal code for each city
+    city_data = []
+    for i, codes in enumerate(area_codes):
+        zip_code = postal_code[i]
+        for code in codes:
+            city_data.append((code, zip_code))
+    
+    output_file_path = os.path.join(basedir, 'us_data', 'us_area_codes.csv')
+    # Write the data to a CSV file
+    with open(output_file_path, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(['area_code', 'postal_code'])
+        for data in city_data:
+            writer.writerow(data)
     
     
 if __name__ == '__main__':
     #generate_address()
     #build_cvs_city()
-    build_surnames_csv()
+    #build_surnames_csv()
     #rebuild_csv_products()
-    rebuild_csv_name()
+    #rebuild_csv_name()
+    buid_csv_area_codes()

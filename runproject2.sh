@@ -72,6 +72,13 @@ psql \
      -d "$database" \
      -c "\\copy us_last_names from 'us_data/us_surnames.csv' (format 'csv', header, quote '\"')"
 
+psql \
+     -h "$host" \
+     -p "$port" \
+     -U "$user" \
+     -d "$database" \
+     -c "\\copy area_codes(area_code, postal_code) FROM 'us_data/us_area_codes.csv' DELIMITER ',' CSV HEADER;"
+
 # Inicia el servidor
 psql \
       -X \
