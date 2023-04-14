@@ -15,7 +15,7 @@ DROP TABLE IF EXISTS EMPLOYEE;
 DROP TABLE IF EXISTS UNIT;
 
 
---SECCION 1
+-- SECCION 1
 CREATE TABLE UNIT  (
 	id serial PRIMARY KEY,
 	unit_name varchar(64),
@@ -33,7 +33,7 @@ CREATE TABLE ITEM (
 );
 
 
---SECCION 2
+-- SECCION 2
 CREATE TABLE EMPLOYEE (
 	id serial PRIMARY KEY,
 	employe_code varchar(32),
@@ -67,21 +67,21 @@ CREATE TABLE CUSTOMER (
 );
 
 
---SECCION 3
-CREATE TABLE PLACED_ORDER(
+-- SECCION 3
+CREATE TABLE PLACED_ORDER (
 	id SERIAL PRIMARY KEY,
 	customer_id int,
 	delivery_city_id int,
 	time_placed timestamp,
 	details text,
-	delivery_addres varchar(255),
+	delivery_addrres varchar(255),
 	grade_customer int,
 	grade_employee int,
 	CONSTRAINT fk_placed_order_customer_id FOREIGN KEY (customer_id) REFERENCES customer(id),
 	CONSTRAINT fk_placed_order_delivery_city_id FOREIGN KEY (delivery_city_id) REFERENCES city(id)
 );
 
-CREATE TABLE ORDER_ITEM(
+CREATE TABLE ORDER_ITEM (
 	id SERIAL PRIMARY KEY,
 	placed_order_id int,
 	item_id int,
@@ -91,7 +91,7 @@ CREATE TABLE ORDER_ITEM(
 	CONSTRAINT fk_order_item_item_id FOREIGN KEY(item_id) REFERENCES item(id)
 );
 
-CREATE TABLE DELIVERY(
+CREATE TABLE DELIVERY (
 	id SERIAL PRIMARY KEY,
 	placed_order_id int,
 	employee_id int,
@@ -103,7 +103,7 @@ CREATE TABLE DELIVERY(
 	
 );
 
-CREATE TABLE BOX(
+CREATE TABLE BOX (
 	id SERIAL PRIMARY KEY,
 	delivery_id int,
 	employee_id int,
@@ -112,7 +112,7 @@ CREATE TABLE BOX(
 	CONSTRAINT fk_box_employee_id FOREIGN KEY(employee_id) REFERENCES employee(id)
 );
 
-CREATE TABLE ITEM_IN_BOX(
+CREATE TABLE ITEM_IN_BOX (
 	id SERIAL PRIMARY KEY,
 	box_id int,
 	item_id int,
@@ -122,12 +122,12 @@ CREATE TABLE ITEM_IN_BOX(
 	CONSTRAINT fk_item_in_box_item_id FOREIGN KEY(item_id) REFERENCES item(id)
 );
 
-CREATE TABLE STATUS_CATALOG(
+CREATE TABLE STATUS_CATALOG (
 	id SERIAL PRIMARY KEY,
 	status_name varchar(128)
 );
 
-CREATE TABLE ORDER_STATUS(
+CREATE TABLE ORDER_STATUS (
 	id SERIAL PRIMARY KEY,
 	placed_order_id int,
 	status_catalog_id int,
@@ -137,7 +137,7 @@ CREATE TABLE ORDER_STATUS(
 	CONSTRAINT fk_status_catalog_id FOREIGN KEY(status_catalog_id) REFERENCES status_catalog(id)
 );
 
-CREATE TABLE NOTES(
+CREATE TABLE NOTES (
 	id SERIAL PRIMARY KEY,
 	placed_order_id int,
 	employee_id int,

@@ -34,3 +34,23 @@ CREATE TABLE AREA_CODES (
   postal_code VARCHAR(50),
   CONSTRAINT fk_area_code_postal_code FOREIGN KEY(postal_code) REFERENCES us_cities(postal_code)
 );
+
+CREATE TABLE PRODUCT_NAMES (
+  id SERIAL PRIMARY KEY,
+  name varchar(255)
+);
+
+CREATE TABLE PRODUCT_DESCRIPTIONS (
+  id SERIAL PRIMARY KEY,
+  description text
+);
+
+CREATE TABLE PRODUCT_IMAGE_URLS (
+  id SERIAL PRIMARY KEY,
+  image_url text
+);
+
+CREATE TABLE PRODUCT_PRICES (
+  id SERIAL PRIMARY KEY,
+  price decimal(10,2)
+);

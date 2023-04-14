@@ -269,23 +269,38 @@ def rebuild_csv_products():
     """
     # Establece los nombres de archivo de entrada y salida
     input_file_path = os.path.join(basedir, 'us_data_base', 'BigBasket.csv')
-    output_file_path = os.path.join(basedir, 'us_data', 'products.csv')
+    output_file_path_n = os.path.join(basedir, 'us_data', 'product_names.csv')
+    output_file_path_d = os.path.join(basedir, 'us_data', 'product_brands.csv')
+    output_file_path_p = os.path.join(basedir, 'us_data', 'product_prices.csv')
+    output_file_path_u = os.path.join(basedir, 'us_data', 'product_image_urls.csv')
     
-    # Extract the 'Product Name', 'Discounted Price', 'Image url', and 'Category' columns
-    columns_to_extract = [0, 3, 4, 6]
+    # Carga el dataset de productos
+    products = pd.read_csv(input_file_path)
     
-    # Lee el archivo CSV de entrada como una lista de listas
-    with open(input_file_path, 'r', newline='') as csvfile:
-        reader = csv.reader(csvfile)
-        data = [row for row in reader]
+    # Extrae los nombres de los productos
+    product_names = products['ProductName'].unique()
     
-    # Extrae las columnas deseadas en una nueva lista de listas
-    new_data = [[row[i] for i in columns_to_extract] for row in data]
+    # Crea un archivo CSV con los nombres de los productos
+    pd.DataFrame(product_names, columns=['name']).to_csv(output_file_path_n, index=False)
     
-    # Escriba la nueva lista de listas en el archivo CSV de salida
-    with open(output_file_path, 'w', newline='') as csvfile:
-        writer = csv.writer(csvfile)
-        writer.writerows(new_data)
+    # Extrae las descripciones de los productos
+    product_descrips = products['Brand'].unique()
+    
+    # Crea un archivo CSV con las descripciones de los productos
+    pd.DataFrame(product_descrips, columns=['brand']).to_csv(output_file_path_d, index=False)
+    
+    # Extrae los precios de los productos
+    product_prices = products['DiscountPrice'].unique()
+    
+    # Crea un archivo CSV con los precios de los productos
+    pd.DataFrame(product_prices, columns=['price']).to_csv(output_file_path_p, index=False)
+    
+    # Extrae las URLs de las imágenes de los productos
+    product_image_urls = products['Image_Url'].unique()
+
+    # Crea un archivo CSV con las URLs de las imágenes de los productos
+    pd.DataFrame(product_image_urls, columns=['image_url']).to_csv(output_file_path_u, index=False)
+
 
 def buid_csv_area_codes():
     """
@@ -334,6 +349,6 @@ if __name__ == '__main__':
     generate_address()
     #build_cvs_city()
     #build_surnames_csv()
-    #rebuild_csv_products()
+    rebuild_csv_products()
     #rebuild_csv_name()
-    buid_csv_area_codes()
+    #buid_csv_area_codes()

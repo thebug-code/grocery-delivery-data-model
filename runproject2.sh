@@ -79,6 +79,34 @@ psql \
      -d "$database" \
      -c "\\copy area_codes(area_code, postal_code) FROM 'us_data/us_area_codes.csv' DELIMITER ',' CSV HEADER;"
 
+psql \
+     -h "$host" \
+     -p "$port" \
+     -U "$user" \
+     -d "$database" \
+     -c "\\copy product_names(name) FROM 'us_data/product_names.csv' DELIMITER ',' CSV HEADER;"
+
+psql \
+     -h "$host" \
+     -p "$port" \
+     -U "$user" \
+     -d "$database" \
+     -c "\\copy product_descriptions(description) FROM 'us_data/product_brands.csv' DELIMITER ',' CSV HEADER;"
+
+psql \
+     -h "$host" \
+     -p "$port" \
+     -U "$user" \
+     -d "$database" \
+     -c "\\copy product_prices(price) FROM 'us_data/product_prices.csv' DELIMITER ',' CSV HEADER;"
+
+psql \
+     -h "$host" \
+     -p "$port" \
+     -U "$user" \
+     -d "$database" \
+     -c "\\copy product_image_urls(image_url) FROM 'us_data/product_image_urls.csv' DELIMITER ',' CSV HEADER;"
+
 # Inicia el servidor
 psql \
       -X \

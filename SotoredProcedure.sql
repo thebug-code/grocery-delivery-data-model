@@ -1,23 +1,128 @@
 CREATE FUNCTION spCreateTestData(number_of_customers INTEGER, number_of_orders INTEGER, number_of_items INTEGER, avg_items_per_order varchar(10,2)) 
 RETURNS VOID AS $$
 DECLARE 
+        -- Variables para generar unidades
+        unit_names VARCHAR[];
+        unit_shorts VARCHAR[];
+        product_unit_id INTEGER;
+
+        -- Variables para generar productos
+        product_name VARCHAR(255);
+        product_description TEXT;
+        product_image_url TEXT;
+        product_price DECIMAL(10,2);
+
+        -- Variables para generar empleados
+        employee_code VARCHAR(32);
+        employee_firstname VARCHAR(64);
+        employee_lastname VARCHAR(64);
+
+        -- Variables para generar clientes
 		customer_firstname VARCHAR(50);
 		customer_lastname VARCHAR(50);
 	  	customer_user varchar(100);
 	  	customer_paswword varchar(50);
+        customer_time_inserted timestamp;
+        customer_confirmation_code integer;
+        customer_time_confirmed timestamp;
 		customer_email VARCHAR(120);
 	  	customer_phone varchar(12);
         customer_address varchar(255);
+
         total_population INTEGER;
         relative_populations FLOAT[];
         city_min_customers INTEGER;
         city_max_customers INTEGER;
+        ith_postal_code VARCHAR;
+
+        -- Variables para generar pedidos
+        customer_id INTEGER;
+        customer_city_id INTEGER;
+        order_address VARCHAR(255);
+        days_offset INTEGER;
+        order_time_placed TIMESTAMP;
+
+        
+
 
 BEGIN
+    
+    -- SECCION 1
 
-    --Inserta la ciudades de la tabla base en el modelo
+    -- Genera las unidades
+    unit_names text[] := ARRAY['Kilogram', 'Gram', 'Liter', 'Milliliter', 'Ounce', 'Pound', 'Pint', 'Quart', 'Gallon', 'Dozen', 'Package', 'Carton']
+    unit_shorts text[] := ARRAY['Kg', 'g', 'L', 'mL', 'oz', 'lb', 'pt', 'qt', 'gal', 'dz', 'pkg', 'ctn'];
+
+    -- Insertar las unidades en la tabla
+    FOR i IN 1..array_upper(unit_names, 1) LOOP
+        INSERT INTO UNIT (unit_name, unit_short) VALUES (unit_names[i], unit_shorts[i]);
+    END LOOP;
+    
+    -- Generar <number_of_items> productos (items)
+    FOR i IN 1..number_of_items LOOP
+        -- Selecciona un nombre aleatorio
+        SELECT name
+        INTO product_name
+        FROM product_names
+        ORDER BY RANDOM()
+        LIMIT 1;
+        
+        -- Selecciona una descripción aleatoria
+        SELECT description
+        INTO product_description
+        FROM product_descriptions
+        ORDER BY RANDOM()
+        LIMIT 1;
+
+        -- Selecciona una url de imagen aleatoria
+        SELECT image_url
+        INTO product_image_url
+        FROM product_image_urls
+        ORDER BY RANDOM()
+        LIMIT 1;
+
+        -- Genera un precio aleatorio
+        product_price := (random() * 100)::DECIMAL(10,2);
+
+        -- Seleciona una unidad aleatoria
+        SELECT unit_id
+        INTO product_unit_id
+        FROM unit
+        ORDER BY RANDOM()
+        LIMIT 1;
+
+        -- Inserta el ítem en la tabla
+        INSERT INTO item (unit_id, item_name, price, item_photo, description)
+        VALUES (product_unit_id, product_name, product_price, product_image_url, product_description);
+    END LOOP;
+
+    -- SECCION 2
+    
+    -- Genera un codigo aletorio para el empleado
+    SELECT SUBSTRING(md5(random()::text), 1, 6) as employee_code;
+
+    -- Selecciona un nombre y apellido aleatorio
+    SELECT first_name
+    INTO employee_firstname
+    FROM us_first_names
+    ORDER BY RANDOM()
+    LIMIT 1;
+    
+    SELECT last_name
+    INTO employee_lastname
+    FROM us_last_names
+    ORDER BY RANDOM()
+    LIMIT 1;
+
+    -- Inserta los valores en la tabla
+	INSERT INTO EMPLOYEE (employee_code, first_name, last_name) 
+    VALUES (employee_code, employee_firstname, employee_lastname);
+
+    -- Inserta la ciudades de la tabla base en el modelo
 	INSERT INTO CITY (city_name, postal_code)
-  	SELECT city, postal_code FROM city_base_table
+  	SELECT city, postal_code FROM city_base_table;
+    
+    -- Genera clientes tomando en cuenta la poblacion de las ciudades
 
     -- Calcula la poblacion total de las ciudades
     SELECT SUM(population) INTO total_population FROM us_cities;
@@ -38,32 +143,70 @@ BEGIN
             city_min_customers := (num_customers * relative_populations[i])::INTEGER;
             city_max_customers := ((num_customers * relative_populations[i]) * 2)::INTEGER;
         END IF;
+        
+        -- Selecciona el código postal de esta ciudad
+        SELECT postal_code INTO ith_postal_code FROM city_base_table WHERE city = city_names[i];
 
         -- Genera un número aleatorio de clientes para esta ciudad
         FOR j IN 1..(random() * (city_max_customers - city_min_customers + 1) + city_min_customers)::INTEGER LOOP
-            -- Crear nombre de la persona
-	        SELECT first_name INTO customer_firstname FROM us_first_names ORDER BY RANDOM() LIMIT 1;
-   	        SELECT las_name INTO customer_lastname FROM us_last_names ORDER BY RANDOM() LIMIT 1;
+            -- Selecciona un nombre y apellido aleatorio
+	        SELECT first_name INTO customer_firstname
+            FROM us_first_names
+            ORDER BY RANDOM()
+            LIMIT 1;
 
-            -- Crear el nombre de usuario y contraseña
+   	        SELECT las_name INTO customer_lastname
+            FROM us_last_names
+            ORDER BY RANDOM()
+            LIMIT 1;
+
+            -- Crea el nombre de usuario y contraseña
 	        customer_user := CONCAT(customer_firstname, LEFT(customer_lastname, 1), FLOOR(RANDOM() * 100));
 	        customer_password := MD5(RANDOM()::TEXT);
+
+            -- Genera un código de confirmación de 5 digitos aleatorio
+            customer_confirmation_code := floor(random() * (99999 - 10000 + 1)) + 10000;
+    
+            -- Genera una fecha y hora aleatoria para time_inserted
+            customer_time_inserted := CURRENT_TIMESTAMP - make_interval(hours := floor(random() * 24), minutes := floor(random() * 60));
+    
+            -- Genera una fecha y hora aleatoria para time_confirmed
+            customer_time_confirmed := date_trunc('hour', time_inserted) + make_interval(hours := floor(random() * 48), minutes := floor(random() * 60));
 	        
-	        -- Crear el correo electrónico
+	        -- Crea el correo electrónico
 	        customer_email := CONCAT(customer_firstname, '.', customer_lastname, '@correo.com');
 
-	        -- Generar el número de teléfono
-            SELECT generate_phone_number(postal_code) INTO customer_phone;
+	        -- Genera el número de teléfono
+            SELECT generate_phone_number(ith_postal_code) INTO customer_phone_number;
 
-            -- Generar la dirección
-            SELECT generate_address(postal_code, customer_firstname, customer_lastname) INTO customer_address;
+            -- Genera la dirección
+            SELECT generate_address(ith_postal_code, customer_firstname, customer_lastname) INTO customer_address;
 
-            -- i es la ciudad actual
-	        
-	         -- Insertar los datos en la tabla personas
-	        -- INSERT INTO CUSTOMER (nombre, apellido, correo, telefono, usuario, password) 
-	        -- VALUES (nombre_persona, apellido_persona, correo_persona, telefono_persona, usuario_persona, contrasena_persona);
+	        -- Insertar los datos en la tabla personas
+	        INSERT INTO CUSTOMER (city_id, delivery_address, first_name, last_name, password, time_inserted, confirmation_code, time_confirmed, contact_email, contact_phone, address, delivery_address)
+	        VALUES (i, customer_address, customer_firstname, customer_lastname, customer_password, customer_time_inserted, customer_confirmation_code, customer_time_confirmed, customer_email, customer_phone_number, customer_address, customer_address);
+        END LOOP;
+    END LOOP;
 
+    -- SECCION 3
+
+    -- Generar <number_of_orders> pedidos
+    FOR i IN 1..number_of_orders LOOP
+        -- Selecciona un cliente al azar
+        SELECT id, time_confirmed, city_id, delivery_address
+        INTO customer_id, customer_time_confirmed, customer_city_id, order_address
+        FROM customer
+        ORDER BY RANDOM()
+        LIMIT 1;
+
+        -- Generar la fecha de colocación del pedido (entre 0 y 30 días después de la confirmación)
+        days_offset := trunc(random() * 30);
+        order_time_placed := date_trunc('day', customer_time_confirmed) + days_offset * interval '1 day';
+
+        -- Inserta el pedido
+        INSERT INTO ORDERS (customer_id, delivery_city_id, time_placed, details, delivery_address, grade_customer, grade_employee) VALUES (customer_id, customer_city_id, order_time_placed, 'Order details', order_address, NULL, NULL);
+    END LOOP;
+    
 END;
 $$ LANGUAGE plpgsql;
 
