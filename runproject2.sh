@@ -58,6 +58,20 @@ psql \
      -d "$database" \
      -c "\\copy us_addresses from 'us_data/us_addresses.csv' (format 'csv', header, quote '\"')"
 
+psql \
+     -h "$host" \
+     -p "$port" \
+     -U "$user" \
+     -d "$database" \
+     -c "\\copy us_first_names from 'us_data/us_names.csv' (format 'csv', header, quote '\"')"
+
+psql \
+     -h "$host" \
+     -p "$port" \
+     -U "$user" \
+     -d "$database" \
+     -c "\\copy us_last_names from 'us_data/us_surnames.csv' (format 'csv', header, quote '\"')"
+
 # Inicia el servidor
 psql \
       -X \

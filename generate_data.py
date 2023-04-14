@@ -209,7 +209,7 @@ def rebuild_csv_name():
     names = [name[0] for name in data]
 
     # Encabezados del archivo CSV
-    headers = ['Name']
+    headers = ['name']
 
     # Output file path
     file_path = os.path.join(basedir, 'us_data', 'us_names.csv')
@@ -253,7 +253,7 @@ def build_surnames_csv():
     # Escribe los apellidos en el archivo CSV
     with open(file_path, 'w', newline='') as f:
         writer = csv.writer(f)
-        writer.writerow(['Surname'])
+        writer.writerow(['surname'])
     
         for surname in surnames:
             writer.writerow([surname])
@@ -285,8 +285,8 @@ def rebuild_csv_products():
     
     
 if __name__ == '__main__':
-    generate_address()
-    build_cvs_city()
-    #build_surnames_csv()
+    #generate_address()
+    #build_cvs_city()
+    build_surnames_csv()
     #rebuild_csv_products()
     rebuild_csv_name()
