@@ -12,10 +12,12 @@ CREATE TABLE US_CITIES (
 );
 
 CREATE TABLE US_ADDRESSES (
+    id SERIAL PRIMARY KEY,
     street varchar(128),
     city varchar(128),
     state varchar(3),
-    postal_code varchar(5)
+    postal_code varchar(5),
+    CONSTRAINT fk_us_addresses_postal_code FOREIGN KEY(postal_code) REFERENCES us_cities(postal_code)
 );
 
 CREATE TABLE US_FIRST_NAMES (

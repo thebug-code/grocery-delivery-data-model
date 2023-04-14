@@ -34,20 +34,20 @@ CREATE TABLE ITEM (
 
 
 --SECCION 2
-CREATE TABLE EMPLOYEE(
+CREATE TABLE EMPLOYEE (
 	id serial PRIMARY KEY,
 	employe_code varchar(32),
 	first_name varchar(64),
 	last_name varchar(64)
 );
 
-CREATE TABLE CITY(
+CREATE TABLE CITY (
 	id serial PRIMARY KEY,
 	city_name varchar(128),
 	postal_code varchar(16)
 );
 
-CREATE TABLE CUSTOMER(
+CREATE TABLE CUSTOMER (
 	id SERIAL PRIMARY KEY,
 	city_id int,
 	delivery_city_id int,

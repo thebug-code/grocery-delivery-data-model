@@ -56,7 +56,7 @@ psql \
      -p "$port" \
      -U "$user" \
      -d "$database" \
-     -c "\\copy us_addresses from 'us_data/us_addresses.csv' (format 'csv', header, quote '\"')"
+     -c "\\copy us_addresses(street, city, state, postal_code) from 'us_data/us_addresses.csv' DELIMITER ',' CSV HEADER;"
 
 psql \
      -h "$host" \

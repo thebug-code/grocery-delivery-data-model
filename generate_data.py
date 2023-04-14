@@ -122,9 +122,9 @@ def generate_address():
     # Encabezados del archivo CSV
     headers = ['street_address', 'city', 'state', 'postal_code']
 
-    # Numero minimo y maximo de direcciones a generar para cada ciudad
-    min_addresses = 100
-    max_addresses = 1000
+    # Rango minimo y maximo de direcciones a generar para cada ciudad
+    min_addresses = 150
+    max_addresses = 3000
 
     # Este archivo se guardara en la carpeta us_data
     file_path = os.path.join(basedir, 'us_data', 'us_addresses.csv')
@@ -139,11 +139,15 @@ def generate_address():
         for i, city in enumerate(cities):
             # Calcula el numero de direcciones a generar para esta ciudad
             if i == 0:
+                # Genera mas direcciones para la ciudad mas grande, pero limitado a 3000
+                num_addresses = int(min(relative_populations[i] * max_addresses, max_addresses))
                 # Genera mas direcciones para la ciudad mas grande
-                num_addresses = int(relative_populations[i] * (max_addresses - min_addresses) + min_addresses)  
+                # num_addresses = int(relative_populations[i] * (max_addresses - min_addresses) + min_addresses)  
             else:
                 # Genera menos direcciones para las ciudades mas pequeñas
-                num_addresses = int(relative_populations[i] * min_addresses)
+                # num_addresses = int(relative_populations[i] * min_addresses)
+                # Genera menos direcciones para las ciudades mas pequeñas, pero limitado a 150
+                num_addresses = int(max(relative_populations[i] * min_addresses, min_addresses))
 
             # Genera el numero especificado de direcciones para esta ciudad
             for j in range(num_addresses):
@@ -327,7 +331,7 @@ def buid_csv_area_codes():
     
     
 if __name__ == '__main__':
-    #generate_address()
+    generate_address()
     #build_cvs_city()
     #build_surnames_csv()
     #rebuild_csv_products()
