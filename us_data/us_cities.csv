@@ -1,21 +1,21 @@
-city,state,population
-New York,NY,8336817
-Los Angeles,CA,3970219
-Chicago,IL,2693976
-Houston,TX,2320268
-Phoenix,AZ,1680992
-Philadelphia,PA,1584064
-San Antonio,TX,1550864
-San Diego,CA,1423851
-Dallas,TX,1343573
-San Jose,CA,1035317
-Austin,TX,1002668
-Fort Worth,TX,927720
-Jacksonville,FL,911507
-Columbus,OH,898553
-San Francisco,CA,883305
-Charlotte,NC,875538
-Indianapolis,IN,876384
-Seattle,WA,769714
-Denver,CO,727211
-Washington,DC,693972
+city,zip_code,state,population
+New York,10001,NY,8336817
+Los Angeles,90001,CA,3970219
+Chicago,60601,IL,2693976
+Houston,77001,TX,2320268
+Phoenix,85001,AZ,1680992
+Philadelphia,19101,PA,1584064
+San Antonio,78201,TX,1550864
+San Diego,92101,CA,1423851
+Dallas,75201,TX,1343573
+San Jose,95101,CA,1035317
+Austin,78701,TX,1002668
+Fort Worth,76101,TX,927720
+Jacksonville,32201,FL,911507
+Columbus,43201,OH,898553
+San Francisco,94101,CA,883305
+Charlotte,28201,NC,875538
+Indianapolis,46201,IN,876384
+Seattle,98101,WA,769714
+Denver,80201,CO,727211
+Washington,20001,DC,693972

@@ -44,14 +44,12 @@ psql \
       -d "$database" \
       -a -f "base_tables.sql"
 
-path="$( dirname -- "$( readlink -f -- "$0"; )"; )"/us_data""
-
 psql \
       -U "$user" \
       -h "$host" \
       -p "$port" \
       -d "$database" \
-      -c "\\copy us_cities from '$path/us_cities.csv' (format 'csv', header, quote '\"')"
+      -c "\\copy us_cities from 'us_data/us_cities.csv' (format 'csv', header, quote '\"')"
 
 # Inicia el servidor
 psql \

@@ -81,6 +81,31 @@ states = [
     'DC'
 ]
 
+# Define los codigos postales de las 20 ciudades mas pobladas de Estados Unidos
+
+zip_codes = [
+    '10001',
+    '90001',
+    '60601',
+    '77001',
+    '85001',
+    '19101',
+    '78201',
+    '92101',
+    '75201',
+    '95101',
+    '78701',
+    '76101',
+    '32201',
+    '43201',
+    '94101',
+    '28201',
+    '46201',
+    '98101',
+    '80201',
+    '20001'
+]
+
 # Get the base directory where this Python script is located
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -97,7 +122,7 @@ def generate_address():
 
     # Encabezados del archivo CSV
     # headers = ['Name', 'Street Address', 'City', 'State', 'Zip Code']
-    headers = ['Street Address', 'City', 'State', 'Zip Code']
+    headers = ['street_address', 'city', 'state', 'zip_code']
 
     # Numero minimo y maximo de direcciones a generar para cada ciudad
     min_addresses = 100
@@ -147,7 +172,7 @@ def build_cvs_city():
     Contruye el archivo CSV con las 20 ciudades mas pobladas de Estados Unidos
     """
     # Encabezados del archivo CSV
-    headers = ['city', 'state', 'population']
+    headers = ['city', 'zip_code', 'state', 'population']
 
     # Este archivo se guardara en la carpeta us_data
     file_path = os.path.join(basedir, 'us_data', 'us_cities.csv')
@@ -164,11 +189,14 @@ def build_cvs_city():
             # Generate a random state abbreviation
             state = states[i]
 
+            # Zip code aleatorio
+            zip_code = zip_codes[i]
+
             # Obtiene la poblacion de la ciudad de la lista de poblaciones
             population = populations[i]
 
             # Escribe la direccion en el archivo CSV
-            writer.writerow([city_name, state, population])
+            writer.writerow([city_name, zip_code, state, population])
         
 def rebuild_csv_name():
     """
@@ -259,7 +287,7 @@ def rebuild_csv_products():
     
     
 if __name__ == '__main__':
-    #generate_address()
+    generate_address()
     build_cvs_city()
     #build_surnames_csv()
     #rebuild_csv_products()
