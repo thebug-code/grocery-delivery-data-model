@@ -42,9 +42,6 @@ DECLARE
         days_offset INTEGER;
         order_time_placed TIMESTAMP;
 
-        
-
-
 BEGIN
     
     -- SECCION 1
