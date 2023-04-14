@@ -147,7 +147,7 @@ def build_cvs_city():
     Contruye el archivo CSV con las 20 ciudades mas pobladas de Estados Unidos
     """
     # Encabezados del archivo CSV
-    headers = ['City', 'State', 'Population']
+    headers = ['city', 'state', 'population']
 
     # Este archivo se guardara en la carpeta us_data
     file_path = os.path.join(basedir, 'us_data', 'us_cities.csv')
@@ -260,7 +260,7 @@ def rebuild_csv_products():
     
 if __name__ == '__main__':
     #generate_address()
-    #build_cvs_city()
+    build_cvs_city()
     #build_surnames_csv()
     #rebuild_csv_products()
-    rebuild_csv_name()
+    #rebuild_csv_name()

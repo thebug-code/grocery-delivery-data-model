@@ -10,22 +10,18 @@ then
     exit 127
 fi
 
-echo "Ingrese el nombre de usuario de PostgreSQL:"
-read user
+read -p "Ingrese el nombre de usuario de PostgreSQL: " user
 
 while [ -z "$user" ]
 do
-  echo "El nombre de usuario no puede estar vacío. Ingrese el nombre de usuario de PostgreSQL:"
-  read username
+    read -p "El nombre de usuario no puede estar vacío. Ingrese el nombre de usuario de PostgreSQL: " user
 done
 
-echo "Ingrese la contraseña de PostgreSQL:"
-read -s password
+read -sp "Ingrese la contraseña de PostgreSQL: " password
 
 while [ -z "$password" ]
 do
-  echo "La contraseña no puede estar vacía. Ingrese la contraseña de PostgreSQL:"
-  read -s password
+    read -sp "La contraseña no puede estar vacía. Ingrese la contraseña de PostgreSQL: " password
 done
 
 # Configura las variables de entorno
@@ -36,24 +32,34 @@ export PGPASSWORD=$password
 
 # Crea la base de datos
 createdb \
-        -h $host \
-        -p $port \
+        -h "$host" \
+        -p "$port" \
         -U "$user" \
         "$database"
 
-# Importa y lee los *.sql
 psql \
+      -h "$host" \
+      -p "$port" \
       -U "$user" \
       -d "$database" \
-      -a -f "base_table.sql"
+      -a -f "base_tables.sql"
+
+path="$( dirname -- "$( readlink -f -- "$0"; )"; )"/us_data""
+
+psql \
+      -U "$user" \
+      -h "$host" \
+      -p "$port" \
+      -d "$database" \
+      -c "\\copy us_cities from '$path/us_cities.csv' (format 'csv', header, quote '\"')"
 
 # Inicia el servidor
 psql \
-    -X \
-    -h "$host" \
-    -p "$port" \
-    -U "$user" \
-    -d "$database"
+      -X \
+      -h "$host" \
+      -p "$port" \
+      -U "$user" \
+      -d "$database"
 
 psql_exit_status=$? 
 
@@ -68,8 +74,10 @@ read -p "¿Desea eliminar la base de datos? (s/n): " respuesta
 if [ "$respuesta" == "s" ]; then
   # Eliminar la base de datos
     dropdb \
+        -h "$host" \
+        -p "$port" \
         -U "$user" \
-        -d "$database"
+        "$database"
 else
   echo "No se eliminó la base de datos."
 fi
