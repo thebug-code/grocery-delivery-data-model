@@ -10,39 +10,40 @@ then
     exit 127
 fi
 
-# Lee el nombre de usuario de PostgreSQL para conectarse
-read -p "Username [postgres]: " user
+echo "Ingrese el nombre de usuario de PostgreSQL:"
+read user
 
-if [ -z "$user" ];
-then
-    echo "Por favor ingrese el nombre de usuario de PostgreSQL"
-    exit 1
-fi
+while [ -z "$user" ]
+do
+  echo "El nombre de usuario no puede estar vacío. Ingrese el nombre de usuario de PostgreSQL:"
+  read username
+done
 
-# Lee la contraseña que se utilizará si el servidor exige la autenticación de contraseña
-read -sp "Password: " password
-echo '\\n'
-if [ -z "$password" ];
-then
-    echo "Por favor ingrese la contraseña del usuario de PostgreSQL"
-    exit 1
-fi
+echo "Ingrese la contraseña de PostgreSQL:"
+read -s password
+
+while [ -z "$password" ]
+do
+  echo "La contraseña no puede estar vacía. Ingrese la contraseña de PostgreSQL:"
+  read -s password
+done
 
 # Configura las variables de entorno
 port='5432'
 host='localhost'
 database='BDP2_1810536_1610109'
+export PGPASSWORD=$password
 
 # Crea la base de datos
 createdb \
-        -O "$user" \
-        -W "$password" \
+        -h $host \
+        -p $port \
+        -U "$user" \
         "$database"
 
 # Importa y lee los *.sql
 psql \
       -U "$user" \
-      -W "$password" \
       -d "$database" \
       -a -f "base_table.sql"
 
@@ -51,8 +52,8 @@ psql \
     -X \
     -h "$host" \
     -p "$port" \
-    -U "$user"
-    -W "$password" "$database"
+    -U "$user" \
+    -d "$database"
 
 psql_exit_status=$? 
 
@@ -68,7 +69,7 @@ if [ "$respuesta" == "s" ]; then
   # Eliminar la base de datos
     dropdb \
         -U "$user" \
-        -W "$password" "$database"
+        -d "$database"
 else
   echo "No se eliminó la base de datos."
 fi
