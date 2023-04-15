@@ -1,4 +1,4 @@
-CREATE FUNCTION spCreateTestData(number_of_customers INTEGER, number_of_orders INTEGER, number_of_items INTEGER, avg_items_per_order varchar(10,2)) 
+CREATE FUNCTION spCreateTestData(number_of_customers INTEGER, number_of_orders INTEGER, number_of_items INTEGER, avg_items_per_order DECIMAL(10,2))
 RETURNS VOID AS $$
 DECLARE 
         -- Variables de control
@@ -58,11 +58,10 @@ DECLARE
         delivery_time_actual TIMESTAMP;
 
         -- Variables para generar boxes
-        delivery_row delivery RECORD;
+        delivery_row_delivery RECORD;
         box_code VARCHAR(32);
-        box_employee_id;
+        box_employee_id INTEGER;
         delivery_id INTEGER;
-        placed_order_row RECORD;
         box_row RECORD;
         remaining_quantity DECIMAL(10, 3);
 
@@ -71,14 +70,15 @@ BEGIN
     -- SECCION 1
 
     -- Genera las unidades
-    unit_names text[] := ARRAY['Kilogram', 'Gram', 'Liter', 'Milliliter', 'Ounce', 'Pound', 'Pint', 'Quart', 'Gallon', 'Dozen', 'Package', 'Carton']
-    unit_shorts text[] := ARRAY['Kg', 'g', 'L', 'mL', 'oz', 'lb', 'pt', 'qt', 'gal', 'dz', 'pkg', 'ctn'];
+    unit_names := ARRAY['Kilogram', 'Gram', 'Liter', 'Milliliter', 'Ounce', 'Pound', 'Pint', 'Quart', 'Gallon', 'Dozen', 'Package', 'Carton'];
+
+    unit_shorts := ARRAY['Kg', 'g', 'L', 'mL', 'oz', 'lb', 'pt', 'qt', 'gal', 'dz', 'pkg', 'ctn'];
 
     -- Insertar las unidades en la tabla
     FOR i IN 1..array_upper(unit_names, 1) LOOP
         INSERT INTO UNIT (unit_name, unit_short) VALUES (unit_names[i], unit_shorts[i]);
     END LOOP;
-    
+
     -- Generar <number_of_items> productos (items)
     FOR i IN 1..number_of_items LOOP
         -- Selecciona un nombre aleatorio
@@ -106,17 +106,18 @@ BEGIN
         product_price := (random() * 100)::DECIMAL(10,2);
 
         -- Seleciona una unidad aleatoria
-        SELECT unit_id
+        SELECT id
         INTO product_unit_id
         FROM unit
         ORDER BY RANDOM()
         LIMIT 1;
 
         -- Inserta el ítem en la tabla
-        INSERT INTO item (unit_id, item_name, price, item_photo, description)
+        INSERT INTO ITEM (unit_id, item_name, price, item_photo, description)
         VALUES (product_unit_id, product_name, product_price, product_image_url, product_description);
     END LOOP;
 
+    /*
     -- SECCION 2
     
     -- Genera un codigo aletorio para el empleado
@@ -338,6 +339,7 @@ BEGIN
             END LOOP;
         END LOOP;
     END LOOP;
+    */
 END;
 $$ LANGUAGE plpgsql;
 
