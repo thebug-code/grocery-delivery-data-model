@@ -258,7 +258,8 @@ BEGIN
     END LOOP;
     
     -- Generar datos para tabla de delivery
-
+	INSERT INTO status_catalog(status_name)
+	SELECT status_name FROM us_status;
     -- Itera para cada placed_order
     FOR placed_order_row IN SELECT * FROM placed_order LOOP
         -- Seleccciona un empleado al azar
@@ -273,7 +274,7 @@ BEGIN
         delivery_time_desired := placed_order_row.time_placed + INTERVAL '1 hour' * ROUND(RANDOM() * 2 + 0.5) + INTERVAL '15 minutes' * ROUND(RANDOM() * 4 + 1);
 
         -- Genera el tiempo de entrega actual agregando un tiempo aleatorio al tiempo de entrega planeado
-        delivery_time_actual := delivery_time_desired + INTERVAL '10 minutes' * ROUND(RANDOM() * 12 + 1) +  INTERVAL '1 hour' * ROUND(RANDOM() * 2 + 0.5);
+      	delivery_time_actual := delivery_time_desired  + INTERVAL '1 minute' * ROUND(RANDOM() * 60);
 
         -- Inserta la fila en la tabla DELIVERY
         INSERT INTO delivery (placed_order_id, employee_id, delivery_time_planned, delivery_time_actual, notes)
@@ -432,4 +433,5 @@ DROP PROCEDURE spCreateTestData(number_of_customers INTEGER, number_of_orders IN
 CALL spCreateTestData(20,50,50 ,5);
 
 SELECT * FROM CUSTOMER
+SELECT * FROM DELIVERY
 
