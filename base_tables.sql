@@ -54,3 +54,7 @@ CREATE TABLE PRODUCT_PRICES (
   id SERIAL PRIMARY KEY,
   price decimal(10,2)
 );
+
+CREATE TABLE US_STATUS(
+  status_name VARCHAR(150)
+)

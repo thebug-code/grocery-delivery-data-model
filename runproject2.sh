@@ -113,6 +113,12 @@ psql \
      -U "$user" \
      -d "$database" \
      -c "\\copy us_last_names from 'us_data/us_surnames.csv' (format 'csv', header, quote '\"')"
+psql \
+     -h "$host" \
+     -p "$port" \
+     -U "$user" \
+     -d "$database" \
+     -c "\\copy us_status from 'us_data/us_status.csv' (format 'csv', header, quote '\"')"
 
 psql \
      -h "$host" \
