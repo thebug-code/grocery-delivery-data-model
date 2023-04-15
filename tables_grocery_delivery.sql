@@ -17,13 +17,13 @@ DROP TABLE IF EXISTS UNIT;
 
 -- SECCION 1
 CREATE TABLE UNIT  (
-	id serial PRIMARY KEY,
+	id SERIAL PRIMARY KEY,
 	unit_name varchar(64),
 	unit_short varchar(8)
 );
 
 CREATE TABLE ITEM (
-	id serial PRIMARY KEY,
+	id SERIAL PRIMARY KEY,
 	unit_id int,
 	item_name varchar(255),
 	price decimal(10,2),
@@ -35,14 +35,14 @@ CREATE TABLE ITEM (
 
 -- SECCION 2
 CREATE TABLE EMPLOYEE (
-	id serial PRIMARY KEY,
-	employe_code varchar(32),
+	id SERIAL PRIMARY KEY,
+	employee_code varchar(32),
 	first_name varchar(64),
 	last_name varchar(64)
 );
 
 CREATE TABLE CITY (
-	id serial PRIMARY KEY,
+	id SERIAL PRIMARY KEY,
 	city_name varchar(128),
 	postal_code varchar(16)
 );
@@ -74,7 +74,7 @@ CREATE TABLE PLACED_ORDER (
 	delivery_city_id int,
 	time_placed timestamp,
 	details text,
-	delivery_addrres varchar(255),
+	delivery_address varchar(255),
 	grade_customer int,
 	grade_employee int,
 	CONSTRAINT fk_placed_order_customer_id FOREIGN KEY (customer_id) REFERENCES customer(id),

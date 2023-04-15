@@ -72,6 +72,12 @@ psql \
       -U "$user" \
       -d "$database" \
       -a -f "base_tables.sql"
+psql \
+      -h "$host" \
+      -p "$port" \
+      -U "$user" \
+      -d "$database" \
+      -a -f "tables_grocery_delivery.sql"
 
 psql \
       -h "$host" \
