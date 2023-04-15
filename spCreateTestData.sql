@@ -31,12 +31,12 @@ DECLARE
         customer_confirmation_code integer;
         customer_time_confirmed timestamp;
 		customer_email VARCHAR(120);
-	  	customer_phone varchar(12);
+	  	customer_phone_number varchar(12);
         customer_address varchar(255);
 
         total_population INTEGER;
         relative_populations FLOAT[];
-		city_names varchar[];
+	city_names varchar[];
         city_min_customers INTEGER;
         city_max_customers INTEGER;
         ith_postal_code VARCHAR;
@@ -59,11 +59,13 @@ DECLARE
         delivery_time_desired TIMESTAMP;
         delivery_time_actual TIMESTAMP;
 		
-		--variables par agenerar las box
-		delivery_row RECORD;
-		box_code VARCHAR(32);
-		box_employee_id INTEGER;
-
+        -- Variables para generar boxes
+        delivery_row RECORD;
+        box_code VARCHAR(32);
+        box_employee_id INTEGER;
+        delivery_id INTEGER;
+        box_row RECORD;
+        remaining_quantity DECIMAL(10, 3);
 
 BEGIN
     
@@ -116,7 +118,6 @@ BEGIN
         VALUES (product_unit_id, product_name, product_price, product_image_url, product_description);
     END LOOP;
 
-
     -- SECCION 2
     
     -- Genera un codigo aletorio para el empleado
@@ -140,9 +141,9 @@ BEGIN
     VALUES (employee_code, employee_firstname, employee_lastname);
 
     -- Inserta la ciudades de la tabla base en el modelo
-	INSERT INTO city(city_name, postal_code)
-	SELECT city, postal_code FROM us_cities;
-    
+	INSERT INTO CITY (city_name, postal_code)
+  	SELECT city, postal_code FROM us_cities;
+     
     -- Genera clientes tomando en cuenta la poblacion de las ciudades
 
     -- Calcula la poblacion total de las ciudades
@@ -162,6 +163,7 @@ BEGIN
             city_max_customers := (number_of_customers / 2)::INTEGER;
         ELSE
             -- Las otras ciudades tendrán un número mínimo y máximo
+            -- de clientes proporcional a su población relativa
             city_min_customers := (number_of_customers * relative_populations[i])::INTEGER;
             city_max_customers := ((number_of_customers * relative_populations[i]) * 2)::INTEGER;
         END IF;
@@ -183,23 +185,20 @@ BEGIN
             LIMIT 1;
 
             -- Crea el nombre de usuario y contraseña
-	        customer_user := CONCAT(LEFT(customer_firstname,2),'',LEFT(customer_lastname, 2),'', CAST(RANDOM() * 100 AS INTEGER));
-	        customer_password := MD5(RANDOM()::TEXT);
+            customer_user := CONCAT(LEFT(customer_firstname,2),'',LEFT(customer_lastname, 2),'', CAST(RANDOM() * 100 AS INTEGER));
+            customer_password := MD5(RANDOM()::TEXT);
 
             -- Genera un código de confirmación de 5 digitos aleatorio
             customer_confirmation_code := floor(random() * (99999 - 10000 + 1)) + 10000;
     
             -- Genera una fecha y hora aleatoria para time_inserted
-            customer_time_inserted := CURRENT_TIMESTAMP - INTERVAL '1 hour' * FLOOR(RANDOM() * 24)
-                                                - INTERVAL '1 minute' * FLOOR(RANDOM() * 60);
+            customer_time_inserted := CURRENT_TIMESTAMP - (CAST(CAST(floor(random() * 24) AS TEXT) || ' hour' AS INTERVAL) + CAST(CAST(floor(random() * 60) AS TEXT) || ' minute' AS INTERVAL));
 
-  			 -- Genera una fecha y hora aleatoria para time_confirmed
-  			 customer_time_confirmed := DATE_TRUNC('hour', customer_time_inserted)
-                            + INTERVAL '1 hour' * FLOOR(RANDOM() * 48)
-                            + INTERVAL '1 minute' * FLOOR(RANDOM() * 60);
+            -- Genera una fecha y hora aleatoria para time_confirmed
+            customer_time_confirmed := date_trunc('hour', customer_time_inserted) + CAST(CAST(floor(random() * 48) AS TEXT) || ' hour' AS INTERVAL) + CAST(CAST(floor(random() * 60) AS TEXT) || ' minute' AS INTERVAL);
 	        
 	        -- Crea el correo electrónico
-	        customer_email := CONCAT(customer_firstname, '.', customer_lastname, '@correo.com');
+            customer_email := CONCAT(customer_firstname, '.', customer_lastname, '@correo.com');
 
 	        -- Genera el número de teléfono
             SELECT generate_phone_number(ith_postal_code) INTO customer_phone;
@@ -208,11 +207,11 @@ BEGIN
             SELECT generate_address(ith_postal_code, customer_firstname, customer_lastname) INTO customer_address;
 
 	        -- Insertar los datos en la tabla personas
-	        INSERT INTO CUSTOMER (city_id, delivery_city_id, first_name, last_name, user_name ,password, time_inserted, confirmation_code, time_confirmed, contact_email, contact_phone, address, delivery_address)
-	        VALUES (i, i, customer_firstname, customer_lastname, customer_user, customer_password, customer_time_inserted, customer_confirmation_code, customer_time_confirmed, customer_email, customer_phone, customer_address, customer_address);
+	        INSERT INTO CUSTOMER (city_id, delivery_city_id, first_name, last_name, password, time_inserted, confirmation_code, time_confirmed, contact_email, contact_phone, address, delivery_address)
+	        VALUES (i, i, customer_firstname, customer_lastname, customer_password, customer_time_inserted, customer_confirmation_code, customer_time_confirmed, customer_email, customer_phone_number, customer_address, customer_address);
         END LOOP;
     END LOOP;
-
+    
     -- SECCION 3
 
     -- Generar <number_of_orders> pedidos
@@ -280,21 +279,95 @@ BEGIN
         INSERT INTO delivery (placed_order_id, employee_id, delivery_time_planned, delivery_time_actual, notes)
         VALUES (placed_order_row.id, delivery_employee_id, delivery_time_desired, delivery_time_actual, 'Delivery notes');
     END LOOP;
-	
-	 -- Generar datos para tabla box
-	 FOR delivery_row IN SELECT * FROM delivery LOOP
-        -- Seleccciona un empleado al azar
-        SELECT id
-        INTO box_employee_id
-        FROM employee
-        ORDER BY RANDOM()
-        LIMIT 1;
-		
-		SELECT SUBSTRING(md5(random()::text), 1, 10) INTO box_code;
-	
-        -- Inserta la fila en la tabla DELIVERY
-        INSERT INTO box (delivery_id, employee_id, box_code)
-        VALUES (delivery_row.id,box_employee_id,box_code);
+
+   /*	
+    -- Generar datos para tabla box
+    FOR delivery_row IN SELECT * FROM delivery LOOP
+   -- Seleccciona un empleado al azar
+   SELECT id
+   INTO box_employee_id
+   FROM employee
+   ORDER BY RANDOM()
+   LIMIT 1;
+   	
+   	SELECT SUBSTRING(md5(random()::text), 1, 10) INTO box_code;
+   
+   -- Inserta la fila en la tabla DELIVERY
+   INSERT INTO box (delivery_id, employee_id, box_code)
+   VALUES (delivery_row.id,box_employee_id,box_code);
+   */
+   /* 
+    -- Generar entradas para la tabla box y item_in_box
+
+    -- Itera para cada delivery
+    FOR delivery_row IN SELECT * FROM delivery LOOP
+        -- Obtiene el pedido correspondiente a esta entrega
+        SELECT *
+        INTO placed_order_row
+        FROM placed_order
+        WHERE id = delivery_row.placed_order_id;
+
+        -- Calcula la cantidad total de elementos en el pedido
+        SELECT SUM(quantity)
+        INTO remaining_quantity
+        FROM order_item
+        WHERE placed_order_id = placed_order_row.id;
+
+        -- Crea cajas para este pedido hasta que se hayan colocado todos los
+        -- productos
+        WHILE remaining_quantity > 0 LOOP
+            -- Genera un código único para la caja
+            box_code := CONCAT('BOX-', delivery_row.id, '-', LPAD(i::text, 2, '0'));
+            --RAISE INFO 'Remaining quantity: %', remaining_quantity;
+
+            -- Seleciona un empleado al azar
+            SELECT id
+            INTO box_employee_id
+            FROM employee
+            ORDER BY RANDOM()
+            LIMIT 1;
+
+            -- Crea una nueva caja para esta entrega
+            INSERT INTO box (delivery_id, employee_id, box_code) 
+            VALUES (delivery_row.id, box_employee_id, box_code);
+        
+            -- Selecciona la fila recién creada
+            SELECT *
+            INTO box_row
+            FROM box
+            WHERE id = currval(pg_get_serial_sequence('box', 'id'));
+
+            -- Selecciona un artículo aleatorio que aún no se ha agregado a una caja
+            INSERT INTO item_in_box (box_id, item_id, quantity, is_replacement)
+            SELECT box_row.id, item.id, FLOOR(RANDOM() * 10) + 1, RANDOM() < 0.1
+            FROM item
+            JOIN order_item ON order_item.item_id = item.id
+            WHERE order_item.placed_order_id = placed_order_row.id AND item.id NOT IN (
+                SELECT item_id
+                FROM item_in_box
+                WHERE box_id IN (
+                    SELECT id 
+                    FROM box 
+                    WHERE box.delivery_id = delivery_row.id
+                )
+            )
+            ORDER BY RANDOM()
+            LIMIT CASE WHEN remaining_quantity >= 5 THEN FLOOR(RANDOM() * 5) + 1 ELSE remaining_quantity END;
+            
+            -- Actualiza la cantidad restante de elementos
+            SELECT SUM(quantity) INTO remaining_quantity
+            FROM order_item
+            WHERE placed_order_id = placed_order_row.id AND id NOT IN (
+                SELECT item_id
+                FROM item_in_box
+                WHERE box_id IN (
+                    SELECT id 
+                    FROM box 
+                    WHERE box.delivery_id = delivery_row.id
+                )
+            );
+            RAISE NOTICE 'Remaining quantity: %', remaining_quantity;
+        END LOOP;
     END LOOP;
 	
 	
@@ -339,9 +412,9 @@ DECLARE
     line_number VARCHAR;
 BEGIN
     -- Selecciona un area code aleatorio asociado al postal code
-    SELECT area_code
-    INTO area_codee
-    FROM area_codes as ac
+    SELECT ac.area_code
+    INTO area_code
+    FROM us_area_codes ac
     WHERE ac.postal_code = generate_phone_number.postal_code
     ORDER BY RANDOM()
     LIMIT 1;

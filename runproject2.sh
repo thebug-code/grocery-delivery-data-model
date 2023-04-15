@@ -55,8 +55,8 @@ host='localhost'
 database='BDP2_1810536_1610109'
 export PGPASSWORD=$password
 number_of_customers=1000
-number_of_orders=10000
-number_of_items=10000
+number_of_orders=1000
+number_of_items=1000
 avg_items_per_order=5.0
 
 # Crea la base de datos
@@ -125,7 +125,7 @@ psql \
      -p "$port" \
      -U "$user" \
      -d "$database" \
-     -c "\\copy area_codes(area_code, postal_code) FROM 'us_data/us_area_codes.csv' DELIMITER ',' CSV HEADER;"
+     -c "\\copy us_area_codes(area_code, postal_code) FROM 'us_data/us_area_codes.csv' DELIMITER ',' CSV HEADER;"
 
 psql \
      -h "$host" \
@@ -161,7 +161,7 @@ psql \
       -p "$port" \
       -U "$user" \
       -d "$database" \
-      -c "SELECT spCreateTestData($number_of_customers, $number_of_orders, $number_of_items, $avg_items_per_order);"
+      -c "CALL spCreateTestData($number_of_customers, $number_of_orders, $number_of_items, $avg_items_per_order);"
 
 # Inicia el servidor
 psql \

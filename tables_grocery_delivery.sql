@@ -117,7 +117,7 @@ CREATE TABLE ITEM_IN_BOX (
 	box_id int,
 	item_id int,
 	quantity decimal(10,3),
-	is_remplacement bool,
+	is_replacement bool,
 	CONSTRAINT fk_item_in_box_box_id FOREIGN KEY(box_id) REFERENCES box(id),
 	CONSTRAINT fk_item_in_box_item_id FOREIGN KEY(item_id) REFERENCES item(id)
 );

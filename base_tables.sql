@@ -28,7 +28,7 @@ CREATE TABLE US_LAST_NAMES (
     last_name varchar(128)
 );
 
-CREATE TABLE AREA_CODES (
+CREATE TABLE US_AREA_CODES (
   id SERIAL PRIMARY KEY,
   area_code Varchar(3),
   postal_code VARCHAR(50),
