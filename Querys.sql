@@ -1,29 +1,31 @@
 
 --1 Cuáles son los clientes que viven en las ciudades donde se compran el TOP 5% de las órdenes más costosas?
-SELECT * FROM CUSTOMER WHERE city_id in(
-SELECT city.id
-FROM CITY WHERE city.id in(
-SELECT delivery_city_id
-FROM (
-    SELECT placed_order_id, SUM(price * quantity) AS total_cost
-    FROM order_item
-    GROUP BY placed_order_id
-    ORDER BY total_cost DESC
-) AS order_totals
-NATURAL JOIN placed_order
-LIMIT (
-    SELECT CEIL(COUNT(*) * 0.05)
-    FROM placed_order
-)));
+SELECT * FROM CUSTOMER WHERE city_id IN (
+    SELECT city.id
+    FROM CITY WHERE city.id IN (
+        SELECT delivery_city_id
+        FROM (
+            SELECT placed_order_id, SUM(price * quantity) AS total_cost
+            FROM order_item
+            GROUP BY placed_order_id
+            ORDER BY total_cost DESC
+        ) AS order_totals
+        NATURAL JOIN placed_order
+        LIMIT (
+            SELECT CEIL(COUNT(*) * 0.05)
+            FROM placed_order
+        )
+    )
+);
 
 
 --Cuales son los 10 mejores clientes (en monto total de compras)
 SELECT c.*, SUM(oi.quantity * oi.price) as precio_total
 FROM customer as c
-JOIN placed_order as  po on c.id=po.customer_id
+JOIN placed_order as po on c.id = po.customer_id
 JOIN order_item as oi on  oi.placed_order_id= po.id
 GROUP BY c.id
-ORDER BY tprecio_total DESC
+ORDER BY precio_total DESC
 LIMIT 10;
 
 --Cuáles son las 5 ciudades donde las órdenes tardan en promedio más tiempo en ser despachadas/// Tengo mis dudas no se si es placed_order o la del delivery puse esta por

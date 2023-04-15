@@ -274,6 +274,7 @@ BEGIN
         delivery_time_desired := placed_order_row.time_placed + INTERVAL '1 hour' * ROUND(RANDOM() * 2 + 0.5) + INTERVAL '15 minutes' * ROUND(RANDOM() * 4 + 1);
 
         -- Genera el tiempo de entrega actual agregando un tiempo aleatorio al tiempo de entrega planeado
+        -- en un rango de 0 a 60 minutos
       	delivery_time_actual := delivery_time_desired  + INTERVAL '1 minute' * ROUND(RANDOM() * 60);
 
         -- Inserta la fila en la tabla DELIVERY
@@ -399,7 +400,6 @@ END;
 $$;
 
 
-
 -- Dado el codigo postal de una ciudad general un numero de telefono
 CREATE OR REPLACE FUNCTION generate_phone_number(postal_code VARCHAR)
 RETURNS VARCHAR
@@ -426,12 +426,3 @@ BEGIN
     RETURN area_code || '-' || prefix || '-' || line_number;
 END;
 $$
-
-DROP FUNCTION generate_address(customer_postal_code VARCHAR, first_name VARCHAR, last_name VARCHAR)
-DROP PROCEDURE spCreateTestData(number_of_customers INTEGER, number_of_orders INTEGER, number_of_items INTEGER, avg_items_per_order NUMERIC(10,2)) 
-
-CALL spCreateTestData(20,50,50 ,5);
-
-SELECT * FROM CUSTOMER
-SELECT * FROM DELIVERY
-
