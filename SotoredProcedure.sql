@@ -52,6 +52,12 @@ DECLARE
         order_quantity INTEGER;
         item_price DECIMAL(10,2);
 
+        -- Variables para generar deliverys
+        delivery_employee_id INTEGER;
+        delivery_time_desired TIMESTAMP;
+        delivery_time_actual TIMESTAMP;
+
+
 BEGIN
     
     -- SECCION 1
@@ -239,7 +245,29 @@ BEGIN
             VALUES (placed_order_row.id, item_row.id, ROUND(RANDOM() * 10) + 1, item_price);
         END LOOP;
     END LOOP;
+    
+    -- Generar datos para tabla de delivery
 
+    -- Itera para cada placed_order
+    FOR placed_order_row IN SELECT * FROM placed_order LOOP
+        -- Seleccciona un empleado al azar
+        SELECT id
+        INTO delivery_employee_id
+        FROM employee
+        ORDER BY RANDOM()
+        LIMIT 1;
+
+        -- Genera el tiempo de entrega deseado por el cliente en un rango de
+        -- 1.5 a 2.5 horas después del tiempo de colocación del pedido (timed_placed)
+        delivery_time_desired := placed_order_row.time_placed + INTERVAL '1 hour' * ROUND(RANDOM() * 2 + 0.5) + INTERVAL '15 minutes' * ROUND(RANDOM() * 4 + 1);
+
+        -- Genera el tiempo de entrega actual agregando un tiempo aleatorio al tiempo de entrega planeado
+        delivery_time_actual := delivery_time_desired + INTERVAL '10 minutes' * ROUND(RANDOM() * 12 + 1) +  INTERVAL '1 hour' * ROUND(RANDOM() * 2 + 0.5);
+
+        -- Inserta la fila en la tabla DELIVERY
+        INSERT INTO delivery (placed_order_id, employee_id, delivery_time_planned, delivery_time_actual, notes)
+        VALUES (placed_order_row.id, delivery_employee_id, delivery_time_desired, delivery_time_actual, 'Delivery notes');
+    END LOOP;
     
 END;
 $$ LANGUAGE plpgsql;
