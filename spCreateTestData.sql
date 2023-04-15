@@ -201,7 +201,7 @@ BEGIN
             customer_email := CONCAT(customer_firstname, '.', customer_lastname, '@correo.com');
 
 	        -- Genera el número de teléfono
-            SELECT generate_phone_number(ith_postal_code) INTO customer_phone;
+            SELECT generate_phone_number(ith_postal_code) INTO customer_phone_number;
 
             -- Genera la dirección
             SELECT generate_address(ith_postal_code, customer_firstname, customer_lastname) INTO customer_address;
@@ -369,9 +369,7 @@ BEGIN
             RAISE NOTICE 'Remaining quantity: %', remaining_quantity;
         END LOOP;
     END LOOP;
-	
-	
-    
+    */
 END;
 $$; 
 
@@ -407,7 +405,7 @@ RETURNS VARCHAR
 LANGUAGE plpgsql
 AS $$
 DECLARE
-    area_codee VARCHAR;
+    area_code VARCHAR;
     prefix VARCHAR;
     line_number VARCHAR;
 BEGIN
@@ -424,18 +422,6 @@ BEGIN
     line_number := LPAD(FLOOR(RANDOM() * 10000)::text, 4, '0');
 
     -- Retorna el número de teléfono generado
-    RETURN area_codee || '-' || prefix || '-' || line_number;
+    RETURN area_code || '-' || prefix || '-' || line_number;
 END;
 $$
-
-SELECT * FROM CITY
-INSERT INTO city(city_name, postal_code)
-SELECT city, postal_code FROM us_cities;
-
-DELETE FROM City
-
-CALL spCreateTestData(10, 50, 50, 5);
-
-SELECT * FROM CUSTOMER
-SELECT * FROM CITY
-SELECT * FROM ITEM
