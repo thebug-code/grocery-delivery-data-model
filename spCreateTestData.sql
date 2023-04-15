@@ -207,8 +207,8 @@ BEGIN
             SELECT generate_address(ith_postal_code, customer_firstname, customer_lastname) INTO customer_address;
 
 	        -- Insertar los datos en la tabla personas
-	        INSERT INTO CUSTOMER (city_id, delivery_city_id, first_name, last_name, password, time_inserted, confirmation_code, time_confirmed, contact_email, contact_phone, address, delivery_address)
-	        VALUES (i, i, customer_firstname, customer_lastname, customer_password, customer_time_inserted, customer_confirmation_code, customer_time_confirmed, customer_email, customer_phone_number, customer_address, customer_address);
+	        INSERT INTO CUSTOMER (city_id, delivery_city_id, first_name, last_name, user_name,password, time_inserted, confirmation_code, time_confirmed, contact_email, contact_phone, address, delivery_address)
+	        VALUES (i, i, customer_firstname, customer_lastname, customer_user,customer_password,customer_time_inserted, customer_confirmation_code, customer_time_confirmed, customer_email, customer_phone_number, customer_address, customer_address);
         END LOOP;
     END LOOP;
     
@@ -425,3 +425,11 @@ BEGIN
     RETURN area_code || '-' || prefix || '-' || line_number;
 END;
 $$
+
+DROP FUNCTION generate_address(customer_postal_code VARCHAR, first_name VARCHAR, last_name VARCHAR)
+DROP PROCEDURE spCreateTestData(number_of_customers INTEGER, number_of_orders INTEGER, number_of_items INTEGER, avg_items_per_order NUMERIC(10,2)) 
+
+CALL spCreateTestData(20,50,50 ,5);
+
+SELECT * FROM CUSTOMER
+
