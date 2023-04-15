@@ -57,6 +57,14 @@ DECLARE
         delivery_time_desired TIMESTAMP;
         delivery_time_actual TIMESTAMP;
 
+        -- Variables para generar boxes
+        delivery_row delivery RECORD;
+        box_code VARCHAR(32);
+        box_employee_id;
+        delivery_id INTEGER;
+        placed_order_row RECORD;
+        box_row RECORD;
+        remaining_quantity DECIMAL(10, 3);
 
 BEGIN
     
@@ -268,9 +276,71 @@ BEGIN
         INSERT INTO delivery (placed_order_id, employee_id, delivery_time_planned, delivery_time_actual, notes)
         VALUES (placed_order_row.id, delivery_employee_id, delivery_time_desired, delivery_time_actual, 'Delivery notes');
     END LOOP;
-    
+
+    -- Generar entradas para la tabla box y item_in_box
+
+    -- Itera para cada delivery
+    FOR delivery_row IN SELECT * FROM delivery LOOP
+        -- Obtiene el pedido correspondiente a esta entrega
+        SELECT *
+        INTO placed_order_row
+        FROM placed_order
+        WHERE id = delivery_row.placed_order_id;
+
+        -- Calcula la cantidad total de elementos en el pedido
+        SELECT SUM(quantity)
+        INTO remaining_quantity
+        FROM order_item
+        WHERE placed_order_id = placed_order_row.id;
+
+        -- Crea cajas para este pedido hasta que se hayan colocado todos los
+        -- productos
+        WHILE remaining_quantity > 0 LOOP
+            -- Genera un código único para la caja
+            box_code := CONCAT('BOX-', delivery_row.id, '-', LPAD(i::text, 2, '0'));
+
+            -- Seleciona un empleado al azar
+            SELECT id
+            INTO box_employee_id
+            FROM employee
+            ORDER BY RANDOM()
+            LIMIT 1;
+
+            -- Inserta una nueva fila en la tabla box
+            INSERT INTO box (delivery_id, employee_id, box_code) 
+            VALUES (delivery_row.id, box_employee_id, box_code);
+        
+            -- Obtiene el id de la caja recién insertada
+            delivery_id := currval(pg_get_serial_sequence('box', 'id'));
+
+            -- Agrega elementos a la caja
+            FOR i IN 1..FLOOR(RANDOM() * 5) + 1 LOOP
+                -- Selecciona un artículo aleatorio que aún no se ha agregado a una caja
+                INSERT INTO item_in_box (box_id, item_id, quantity, is_replacement)
+                SELECT box_row.id, id, FLOOR(RANDOM() * 10) + 1, RANDOM() < 0.1
+                FROM order_item
+                WHERE placed_order_id = placed_order_row.id AND id NOT IN (
+                    SELECT item_id
+                    FROM item_in_box
+                    WHERE box_id IN (SELECT id FROM box WHERE delivery_id = delivery_row.id)
+                )
+                ORDER BY RANDOM()
+                LIMIT 1;
+            
+                -- Actualiza la cantidad restante de elementos
+                SELECT SUM(quantity) INTO remaining_quantity
+                FROM order_item
+                WHERE placed_order_id = placed_order_row.id;
+            
+                IF remaining_quantity <= 0 THEN
+                    EXIT;
+                END IF;
+            END LOOP;
+        END LOOP;
+    END LOOP;
 END;
 $$ LANGUAGE plpgsql;
+
 
 -- Dado el nombre y apellido de una persona y el codigo postal de la ciudad donde reside
 -- genera una direccion
