@@ -66,6 +66,12 @@ DECLARE
         delivery_id INTEGER;
         box_row RECORD;
         remaining_quantity DECIMAL(10, 3);
+		
+		--variable para los status
+		status_name VARCHAR(50);
+		status_row RECORD;
+		status_time timestamp;
+		random_seconds INTEGER;
 
 BEGIN
     
@@ -213,7 +219,10 @@ BEGIN
     END LOOP;
     
     -- SECCION 3
-
+	-- Generar datos para tabla Status
+	INSERT INTO status_catalog(status_name)
+	SELECT us_status.status_name FROM us_status;
+	
     -- Generar <number_of_orders> pedidos
     FOR i IN 1..number_of_orders LOOP
         -- Selecciona un cliente al azar
@@ -224,19 +233,21 @@ BEGIN
         LIMIT 1;
 
         -- Generar la fecha de colocación del pedido (entre 0 y 30 días después de la confirmación)
-        days_offset := random() * 30;
+        days_offset := TRUNC(random() * 30);
 		order_time_placed := date_trunc('second', customer_time_confirmed) + days_offset * interval '1 day';
 
         -- Inserta el pedido
         INSERT INTO PLACED_ORDER (customer_id, delivery_city_id, time_placed, details, delivery_address, grade_customer, grade_employee)
         VALUES (customer_id, customer_city_id, order_time_placed, 'Order details', order_address, NULL, NULL);
+			
+		
     END LOOP;
 
     -- Generar los item orders deacuerdo al promedio de productos por pedido
-        
+	
     -- Itera para cada placed_order
     FOR placed_order_row IN SELECT * FROM placed_order LOOP
-        
+	
         -- Genera la cantidad de productos que se incluirán en la orden
         order_quantity := ROUND(RANDOM() * (avg_items_per_order * 2) + (avg_items_per_order / 2));
         
@@ -257,9 +268,7 @@ BEGIN
         END LOOP;
     END LOOP;
     
-    -- Generar datos para tabla de delivery
-	INSERT INTO status_catalog(status_name)
-	SELECT status_name FROM us_status;
+	
     -- Itera para cada placed_order
     FOR placed_order_row IN SELECT * FROM placed_order LOOP
         -- Seleccciona un empleado al azar
@@ -270,16 +279,49 @@ BEGIN
         LIMIT 1;
 
         -- Genera el tiempo de entrega deseado por el cliente en un rango de
-        -- 1.5 a 2.5 horas después del tiempo de colocación del pedido (timed_placed)
-        delivery_time_desired := placed_order_row.time_placed + INTERVAL '1 hour' * ROUND(RANDOM() * 2 + 0.5) + INTERVAL '15 minutes' * ROUND(RANDOM() * 4 + 1);
+        -- +20 Minutos y 1 hora maximo después del tiempo de colocación del pedido (timed_placed) 
+       delivery_time_desired := placed_order_row.time_placed + INTERVAL '1 minute' * ROUND(RANDOM() * 60) + INTERVAL '20 minute' ;		
+		
+		--SELECCIONA UN STATUS
+		SELECT * into status_row
+		FROM status_catalog
+		ORDER BY RANDOM()
+		LIMIT 1;
+			
+		IF status_row.status_name = 'delivered' THEN
+			
+			-- Generar un número aleatorio entre 0 y 1 y multiplicarlo por la diferencia en segundos entre las dos fechas
+  			random_seconds := trunc(random() * EXTRACT(EPOCH FROM (delivery_time_desired  - placed_order_row.time_placed)));
 
-        -- Genera el tiempo de entrega actual agregando un tiempo aleatorio al tiempo de entrega planeado
-        -- en un rango de 0 a 60 minutos
-      	delivery_time_actual := delivery_time_desired  + INTERVAL '1 minute' * ROUND(RANDOM() * 60);
+  			-- Sumar los segundos aleatorios al timestamp inicial para obtener el nuevo timestamp aleatorio
+  			status_time :=  placed_order_row.time_placed + (random_seconds * INTERVAL '1 second');
+			
+			-- Genera el tiempo de entrega actual agregando un tiempo aleatorio al tiempo de entrega planeado
+      		delivery_time_actual := status_time + INTERVAL '1 minute' * ROUND(RANDOM() * 60) + INTERVAL '5 minute' ;
+			
+			INSERT INTO order_status (placed_order_id,status_catalog_id,status_time)
+			VALUES (placed_order_row.id,status_row.id,delivery_time_actual);
+		ELSE
+			--Esta en transito
+			delivery_time_actual := NULL;
+			
+			-- Generar un número aleatorio entre 0 y 1 y multiplicarlo por la diferencia en segundos entre las dos fechas
+  			random_seconds := trunc(random() * EXTRACT(EPOCH FROM (delivery_time_desired  - placed_order_row.time_placed)));
 
+  			-- Sumar los segundos aleatorios al timestamp inicial para obtener el nuevo timestamp aleatorio
+  			status_time :=  placed_order_row.time_placed + (random_seconds * INTERVAL '1 second');
+			
+			INSERT INTO order_status (placed_order_id,status_catalog_id,status_time)
+			VALUES (placed_order_row.id,status_row.id,status_time);
+		END IF;
+		
         -- Inserta la fila en la tabla DELIVERY
         INSERT INTO delivery (placed_order_id, employee_id, delivery_time_planned, delivery_time_actual, notes)
         VALUES (placed_order_row.id, delivery_employee_id, delivery_time_desired, delivery_time_actual, 'Delivery notes');
+		
+		
+		
+		
     END LOOP;
 
    /*	
@@ -375,6 +417,8 @@ BEGIN
 END;
 $$; 
 
+
+
 -- Dado el nombre y apellido de una persona y el codigo postal de la ciudad donde reside
 -- genera una direccion
 CREATE OR REPLACE FUNCTION generate_address(customer_postal_code VARCHAR, first_name VARCHAR, last_name VARCHAR)
@@ -426,3 +470,12 @@ BEGIN
     RETURN area_code || '-' || prefix || '-' || line_number;
 END;
 $$
+
+DROP FUNCTION generate_address(customer_postal_code VARCHAR, first_name VARCHAR, last_name VARCHAR)
+DROP PROCEDURE spCreateTestData(number_of_customers INTEGER, number_of_orders INTEGER, number_of_items INTEGER, avg_items_per_order NUMERIC(10,2)) 
+
+CALL spCreateTestData(20,50,50 ,5);
+
+SELECT * FROM CUSTOMER
+SELECT * FROM DELIVERY
+
