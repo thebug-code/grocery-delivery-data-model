@@ -116,7 +116,7 @@ BEGIN
         VALUES (product_unit_id, product_name, product_price, product_image_url, product_description);
     END LOOP;
 
-    /*
+
     -- SECCION 2
     
     -- Genera un codigo aletorio para el empleado
@@ -300,7 +300,7 @@ BEGIN
 	
     
 END;
-$$ LANGUAGE plpgsql;
+$$; 
 
 -- Dado el nombre y apellido de una persona y el codigo postal de la ciudad donde reside
 -- genera una direccion
@@ -362,3 +362,7 @@ SELECT city, postal_code FROM us_cities;
 DELETE FROM City
 
 CALL spCreateTestData(10, 50, 50, 5);
+
+SELECT * FROM CUSTOMER
+SELECT * FROM CITY
+SELECT * FROM ITEM
