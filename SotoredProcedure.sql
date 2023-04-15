@@ -1,6 +1,10 @@
 CREATE FUNCTION spCreateTestData(number_of_customers INTEGER, number_of_orders INTEGER, number_of_items INTEGER, avg_items_per_order varchar(10,2)) 
 RETURNS VOID AS $$
 DECLARE 
+        -- Variables de control
+        i INTEGER;
+        j INTEGER;
+
         -- Variables para generar unidades
         unit_names VARCHAR[];
         unit_shorts VARCHAR[];
@@ -41,6 +45,12 @@ DECLARE
         order_address VARCHAR(255);
         days_offset INTEGER;
         order_time_placed TIMESTAMP;
+
+        -- Variables para generar order_items
+        placed_order_row RECORD;
+        item_row RECORD;
+        order_quantity INTEGER;
+        item_price DECIMAL(10,2);
 
 BEGIN
     
@@ -201,8 +211,35 @@ BEGIN
         order_time_placed := date_trunc('day', customer_time_confirmed) + days_offset * interval '1 day';
 
         -- Inserta el pedido
-        INSERT INTO ORDERS (customer_id, delivery_city_id, time_placed, details, delivery_address, grade_customer, grade_employee) VALUES (customer_id, customer_city_id, order_time_placed, 'Order details', order_address, NULL, NULL);
+        INSERT INTO PLACED_ORDER (customer_id, delivery_city_id, time_placed, details, delivery_address, grade_customer, grade_employee)
+        VALUES (customer_id, customer_city_id, order_time_placed, 'Order details', order_address, NULL, NULL);
     END LOOP;
+
+    -- Generar los item orders deacuerdo al promedio de productos por pedido
+        
+    -- Itera para cada placed_order
+    FOR placed_order_row IN SELECT * FROM placed_order LOOP
+        
+        -- Genera la cantidad de productos que se incluirán en la orden
+        order_quantity := ROUND(RANDOM() * (avg_items_per_order * 2) + (avg_items_per_order / 2));
+        
+        -- Itera para cada producto en la orden
+        FOR i IN 1..order_quantity LOOP
+            -- Seleciona aleatoriamente un producto y su preciro
+            SELECT *
+            INTO item_row
+            FROM item
+            ORDER BY RANDOM()
+            LIMIT 1;
+
+            item_price := item_row.price;
+            
+            -- Inserta la fila en la tabla ORDER_ITEM
+            INSERT INTO order_item (placed_order_id, item_id, quantity, price)
+            VALUES (placed_order_row.id, item_row.id, ROUND(RANDOM() * 10) + 1, item_price);
+        END LOOP;
+    END LOOP;
+
     
 END;
 $$ LANGUAGE plpgsql;
