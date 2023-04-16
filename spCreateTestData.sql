@@ -36,7 +36,7 @@ DECLARE
 
         total_population INTEGER;
         relative_populations FLOAT[];
-	city_names varchar[];
+        city_names varchar[];
         city_min_customers INTEGER;
         city_max_customers INTEGER;
         ith_postal_code VARCHAR;
@@ -65,7 +65,7 @@ DECLARE
         box_employee_id INTEGER;
         delivery_id INTEGER;
         box_row RECORD;
-        remaining_quantity DECIMAL(10, 3);
+        order_item_row RECORD;
 		
 		--variable para los status
 		status_name VARCHAR(50);
@@ -126,25 +126,28 @@ BEGIN
 
     -- SECCION 2
     
-    -- Genera un codigo aletorio para el empleado
-    SELECT SUBSTRING(md5(random()::text), 1, 6) INTO employee_code;
+    -- Genera empleados
+    FOR i IN 1..200 LOOP
+        -- Genera un codigo aletorio para el empleado
+        SELECT SUBSTRING(md5(random()::text), 1, 6) INTO employee_code;
 
-    -- Selecciona un nombre y apellido aleatorio
-    SELECT first_name
-    INTO employee_firstname
-    FROM us_first_names
-    ORDER BY RANDOM()
-    LIMIT 1;
-    
-    SELECT last_name
-    INTO employee_lastname
-    FROM us_last_names
-    ORDER BY RANDOM()
-    LIMIT 1;
+        -- Selecciona un nombre y apellido aleatorio
+        SELECT first_name
+        INTO employee_firstname
+        FROM us_first_names
+        ORDER BY RANDOM()
+        LIMIT 1;
+        
+        SELECT last_name
+        INTO employee_lastname
+        FROM us_last_names
+        ORDER BY RANDOM()
+        LIMIT 1;
 
-    -- Inserta los valores en la tabla
-	INSERT INTO EMPLOYEE (employee_code, first_name, last_name) 
-    VALUES (employee_code, employee_firstname, employee_lastname);
+        -- Inserta los valores en la tabla
+	    INSERT INTO EMPLOYEE (employee_code, first_name, last_name) 
+        VALUES (employee_code, employee_firstname, employee_lastname);
+    END LOOP;
 
     -- Inserta la ciudades de la tabla base en el modelo
 	INSERT INTO CITY (city_name, postal_code)
@@ -219,6 +222,7 @@ BEGIN
     END LOOP;
     
     -- SECCION 3
+
 	-- Generar datos para tabla Status
 	INSERT INTO status_catalog(status_name)
 	SELECT us_status.status_name FROM us_status;
@@ -233,14 +237,13 @@ BEGIN
         LIMIT 1;
 
         -- Generar la fecha de colocación del pedido (entre 0 y 30 días después de la confirmación)
-        days_offset := TRUNC(random() * 30);
+        days_offset := trunc(random() * 30);
 		order_time_placed := date_trunc('second', customer_time_confirmed) + days_offset * interval '1 day';
 
         -- Inserta el pedido
         INSERT INTO PLACED_ORDER (customer_id, delivery_city_id, time_placed, details, delivery_address, grade_customer, grade_employee)
         VALUES (customer_id, customer_city_id, order_time_placed, 'Order details', order_address, NULL, NULL);
 			
-		
     END LOOP;
 
     -- Generar los item orders deacuerdo al promedio de productos por pedido
@@ -319,28 +322,8 @@ BEGIN
         INSERT INTO delivery (placed_order_id, employee_id, delivery_time_planned, delivery_time_actual, notes)
         VALUES (placed_order_row.id, delivery_employee_id, delivery_time_desired, delivery_time_actual, 'Delivery notes');
 		
-		
-		
-		
     END LOOP;
 
-   /*	
-    -- Generar datos para tabla box
-    FOR delivery_row IN SELECT * FROM delivery LOOP
-   -- Seleccciona un empleado al azar
-   SELECT id
-   INTO box_employee_id
-   FROM employee
-   ORDER BY RANDOM()
-   LIMIT 1;
-   	
-   	SELECT SUBSTRING(md5(random()::text), 1, 10) INTO box_code;
-   
-   -- Inserta la fila en la tabla DELIVERY
-   INSERT INTO box (delivery_id, employee_id, box_code)
-   VALUES (delivery_row.id,box_employee_id,box_code);
-   */
-   /* 
     -- Generar entradas para la tabla box y item_in_box
 
     -- Itera para cada delivery
@@ -351,73 +334,34 @@ BEGIN
         FROM placed_order
         WHERE id = delivery_row.placed_order_id;
 
-        -- Calcula la cantidad total de elementos en el pedido
-        SELECT SUM(quantity)
-        INTO remaining_quantity
-        FROM order_item
-        WHERE placed_order_id = placed_order_row.id;
-
-        -- Crea cajas para este pedido hasta que se hayan colocado todos los
-        -- productos
-        WHILE remaining_quantity > 0 LOOP
+        -- Seleciona un empleado al azar
+        SELECT id
+        INTO box_employee_id
+        FROM employee WHERE id <> delivery_row.employee_id
+        ORDER BY RANDOM()
+        LIMIT 1;
+        
+        -- Itera para cada item_order de este pedido y se colócalo en una caja
+        FOR order_item_row IN SELECT * FROM order_item WHERE placed_order_id = placed_order_row.id LOOP
             -- Genera un código único para la caja
             box_code := CONCAT('BOX-', delivery_row.id, '-', LPAD(i::text, 2, '0'));
-            --RAISE INFO 'Remaining quantity: %', remaining_quantity;
 
-            -- Seleciona un empleado al azar
-            SELECT id
-            INTO box_employee_id
-            FROM employee
-            ORDER BY RANDOM()
-            LIMIT 1;
-
-            -- Crea una nueva caja para esta entrega
             INSERT INTO box (delivery_id, employee_id, box_code) 
             VALUES (delivery_row.id, box_employee_id, box_code);
-        
+
             -- Selecciona la fila recién creada
             SELECT *
             INTO box_row
             FROM box
             WHERE id = currval(pg_get_serial_sequence('box', 'id'));
 
-            -- Selecciona un artículo aleatorio que aún no se ha agregado a una caja
+            -- Inserta la fila en la tabla ITEM_IN_BOX
             INSERT INTO item_in_box (box_id, item_id, quantity, is_replacement)
-            SELECT box_row.id, item.id, FLOOR(RANDOM() * 10) + 1, RANDOM() < 0.1
-            FROM item
-            JOIN order_item ON order_item.item_id = item.id
-            WHERE order_item.placed_order_id = placed_order_row.id AND item.id NOT IN (
-                SELECT item_id
-                FROM item_in_box
-                WHERE box_id IN (
-                    SELECT id 
-                    FROM box 
-                    WHERE box.delivery_id = delivery_row.id
-                )
-            )
-            ORDER BY RANDOM()
-            LIMIT CASE WHEN remaining_quantity >= 5 THEN FLOOR(RANDOM() * 5) + 1 ELSE remaining_quantity END;
-            
-            -- Actualiza la cantidad restante de elementos
-            SELECT SUM(quantity) INTO remaining_quantity
-            FROM order_item
-            WHERE placed_order_id = placed_order_row.id AND id NOT IN (
-                SELECT item_id
-                FROM item_in_box
-                WHERE box_id IN (
-                    SELECT id 
-                    FROM box 
-                    WHERE box.delivery_id = delivery_row.id
-                )
-            );
-            RAISE NOTICE 'Remaining quantity: %', remaining_quantity;
+            VALUES (box_row.id, order_item_row.item_id, order_item_row.quantity, FALSE);
         END LOOP;
     END LOOP;
-    */
 END;
 $$; 
-
-
 
 -- Dado el nombre y apellido de una persona y el codigo postal de la ciudad donde reside
 -- genera una direccion
@@ -470,12 +414,3 @@ BEGIN
     RETURN area_code || '-' || prefix || '-' || line_number;
 END;
 $$
-
-DROP FUNCTION generate_address(customer_postal_code VARCHAR, first_name VARCHAR, last_name VARCHAR)
-DROP PROCEDURE spCreateTestData(number_of_customers INTEGER, number_of_orders INTEGER, number_of_items INTEGER, avg_items_per_order NUMERIC(10,2)) 
-
-CALL spCreateTestData(20,50,50 ,5);
-
-SELECT * FROM CUSTOMER
-SELECT * FROM DELIVERY
-
