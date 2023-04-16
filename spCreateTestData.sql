@@ -78,14 +78,9 @@ BEGIN
     
     -- SECCION 1
 
-    -- Genera las unidades
-    unit_names  := ARRAY['Kilogram', 'Gram', 'Liter', 'Milliliter', 'Ounce', 'Pound', 'Pint', 'Quart', 'Gallon', 'Dozen', 'Package', 'Carton'];
-    unit_shorts := ARRAY['Kg', 'g', 'L', 'mL', 'oz', 'lb', 'pt', 'qt', 'gal', 'dz', 'pkg', 'ctn'];
-
     -- Insertar las unidades en la tabla
-    FOR i IN 1..array_upper(unit_names, 1) LOOP
-        INSERT INTO UNIT (unit_name, unit_short) VALUES (unit_names[i], unit_shorts[i]);
-    END LOOP;
+	INSERT INTO UNIT (unit_name, unit_short)
+    SELECT unit_name, unit_short FROM us_units;
 
     -- Generar <number_of_items> productos (items)
     FOR i IN 1..number_of_items LOOP
@@ -166,9 +161,6 @@ BEGIN
         FROM us_cities
         ORDER BY random() * population DESC
         LIMIT 1 INTO customer_city_name;
-        
-        -- Imprimir el nombre de la ciudad
-        RAISE NOTICE 'Generating customer for %', customer_city_name;
         
         -- Calcula el número mínimo y máximo de clientes para la ciudad seleccionada
         SELECT population

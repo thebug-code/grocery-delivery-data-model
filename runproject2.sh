@@ -153,6 +153,13 @@ psql \
      -p "$port" \
      -U "$user" \
      -d "$database" \
+     -c "\\copy us_units(unit_name, unit_short) FROM 'us_data/us_units.csv' DELIMITER ',' CSV HEADER;"
+
+psql \
+     -h "$host" \
+     -p "$port" \
+     -U "$user" \
+     -d "$database" \
      -f "spCreateTestData.sql"
 
 # Llama a la función de carga de datos
