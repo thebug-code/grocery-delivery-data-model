@@ -1,8 +1,9 @@
-CREATE OR REPLACE PROCEDURE spCreateTestData(number_of_customers INTEGER, number_of_orders INTEGER, number_of_items INTEGER, avg_items_per_order NUMERIC(10,2)) 
+-- SECCION 1
+CREATE OR REPLACE PROCEDURE generate_S1(number_of_items INTEGER)
 LANGUAGE plpgsql
 AS $$
-DECLARE 
-        -- Variables de control
+DECLARE
+    	-- Variables de control
         i INTEGER;
         j INTEGER;
 
@@ -16,66 +17,7 @@ DECLARE
         product_description TEXT;
         product_image_url TEXT;
         product_price DECIMAL(10,2);
-
-        -- Variables para generar empleados
-        employee_code VARCHAR(32);
-        employee_firstname VARCHAR(64);
-        employee_lastname VARCHAR(64);
-
-
-        -- Variables para generar clientes
-		customer_firstname VARCHAR(50);
-		customer_lastname VARCHAR(50);
-	  	customer_user varchar(64);
-	  	customer_password varchar(50);
-        customer_time_inserted timestamp;
-        customer_confirmation_code integer;
-        customer_time_confirmed timestamp;
-		customer_email VARCHAR(120);
-	  	customer_phone_number varchar(12);
-        customer_address varchar(255);
-
-        total_population INTEGER;
-        customer_city_id INTEGER;
-        customer_city_population INTEGER;
-        customer_city_name VARCHAR(128);
-        customer_postal_code VARCHAR;
-        city_min_customers INTEGER;
-        city_max_customers INTEGER;
-
-        -- Variables para generar pedidos
-        customer_id INTEGER;
-        order_address VARCHAR(255);
-        days_offset INTEGER;
-        order_time_placed TIMESTAMP;
-
-        -- Variables para generar order_items
-        placed_order_row RECORD;
-        item_row RECORD;
-        order_quantity INTEGER;
-        item_price DECIMAL(10,2);
-
-        -- Variables para generar deliverys
-        delivery_employee_id INTEGER;
-        delivery_time_desired TIMESTAMP;
-        delivery_time_actual TIMESTAMP;
-		
-        -- Variables para generar boxes
-        delivery_row RECORD;
-        box_code VARCHAR(32);
-        box_employee_id INTEGER;
-        delivery_id INTEGER;
-        box_row RECORD;
-        order_item_row RECORD;
-		
-		--variable para los status
-		status_name VARCHAR(50);
-		status_row RECORD;
-		status_time timestamp;
-		random_seconds INTEGER;
-
 BEGIN
-    
     -- SECCION 1
 
     -- Insertar las unidades en la tabla
@@ -118,11 +60,41 @@ BEGIN
         -- Inserta el ítem en la tabla
         INSERT INTO ITEM (unit_id, item_name, price, item_photo, description)
         VALUES (product_unit_id, product_name, product_price, product_image_url, product_description);
+		
     END LOOP;
+END;
+$$;
 
-    -- SECCION 2
-    
-    -- Genera empleados
+--SECCION 2
+CREATE OR REPLACE PROCEDURE generate_S2(number_of_customers INTEGER)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    	-- Variables para generar empleados
+        employee_code VARCHAR(32);
+        employee_firstname VARCHAR(64);
+        employee_lastname VARCHAR(64);
+		
+        -- Variables para generar clientes
+		customer_firstname VARCHAR(50);
+		customer_lastname VARCHAR(50);
+	  	customer_user varchar(64);
+	  	customer_password varchar(50);
+        customer_time_inserted timestamp;
+        customer_confirmation_code integer;
+        customer_time_confirmed timestamp;
+		customer_email VARCHAR(120);
+	  	customer_phone_number varchar(12);
+        customer_address varchar(255);
+        total_population INTEGER;
+        customer_city_id INTEGER;
+        customer_city_population INTEGER;
+        customer_city_name VARCHAR(128);
+        customer_postal_code VARCHAR;
+        city_min_customers INTEGER;
+        city_max_customers INTEGER;
+BEGIN
+     -- Genera empleados
     FOR i IN 1..200 LOOP
         -- Genera un codigo aletorio para el empleado
         SELECT SUBSTRING(md5(random()::text), 1, 6) INTO employee_code;
@@ -214,10 +186,46 @@ BEGIN
 	    INSERT INTO CUSTOMER (city_id, delivery_city_id, first_name, last_name, user_name,password, time_inserted, confirmation_code, time_confirmed, contact_email, contact_phone, address, delivery_address)
 	    VALUES (customer_city_id, customer_city_id, customer_firstname, customer_lastname, customer_user,customer_password,customer_time_inserted, customer_confirmation_code, customer_time_confirmed, customer_email, customer_phone_number, customer_address, customer_address);
     END LOOP;
-    
-    -- SECCION 3
+END;
+$$;
 
-	-- Generar datos para tabla Status
+
+-- SECCION 3
+CREATE OR REPLACE PROCEDURE generate_S3(number_of_orders INTEGER, avg_items_per_order NUMERIC(10,2))
+LANGUAGE plpgsql
+AS $$
+DECLARE
+		--Variables para customer
+		customer_time_confirmed timestamp;
+		customer_city_id INTEGER;
+        -- Variables para generar pedidos
+        customer_id INTEGER;
+        order_address VARCHAR(255);
+        days_offset INTEGER;
+        order_time_placed TIMESTAMP;
+
+        -- Variables para generar order_items
+        placed_order_row RECORD;
+        item_row RECORD;
+        order_quantity INTEGER;
+        item_price DECIMAL(10,2);
+
+        -- Variables para generar deliverys
+        delivery_employee_id INTEGER;
+        delivery_time_desired TIMESTAMP;
+        delivery_time_actual TIMESTAMP;
+		
+		--variable para los status
+		status_name VARCHAR(50);
+		status_row RECORD;
+		status_time timestamp;
+		random_seconds INTEGER;
+
+    	
+BEGIN
+     
+	 
+-- Generar datos para tabla Status
 	INSERT INTO status_catalog(status_name)
 	SELECT us_status.status_name FROM us_status;
 	
@@ -318,6 +326,53 @@ BEGIN
 		
     END LOOP;
 
+   
+END;
+$$;
+
+CREATE OR REPLACE PROCEDURE spCreateTestData(number_of_customers INTEGER, number_of_orders INTEGER, number_of_items INTEGER, avg_items_per_order NUMERIC(10,2)) 
+LANGUAGE plpgsql
+AS $$
+DECLARE 
+        -- Variables de control
+        i INTEGER;
+        j INTEGER;
+
+     
+     
+        -- Variables para generar order_items
+        placed_order_row RECORD;
+        item_row RECORD;
+        order_quantity INTEGER;
+        item_price DECIMAL(10,2);
+
+        -- Variables para generar deliverys
+        delivery_employee_id INTEGER;
+        delivery_time_desired TIMESTAMP;
+        delivery_time_actual TIMESTAMP;
+		
+        -- Variables para generar boxes
+        delivery_row RECORD;
+        box_code VARCHAR(32);
+        box_employee_id INTEGER;
+        delivery_id INTEGER;
+        box_row RECORD;
+        order_item_row RECORD;
+		
+	
+
+BEGIN
+   
+    -- SECCION 1
+ 	CALL generate_S1(number_of_items);
+  
+    -- SECCION 2
+    
+   	CALL generate_S2(number_of_customers);
+    -- SECCION 3
+
+	CALL generate_S3(number_of_orders,avg_items_per_order);
+
     -- Generar entradas para la tabla box y item_in_box
 
     -- Itera para cada delivery
@@ -408,3 +463,16 @@ BEGIN
     RETURN area_code || '-' || prefix || '-' || line_number;
 END;
 $$
+
+
+
+
+
+
+
+
+
+
+
+
+
