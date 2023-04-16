@@ -22,6 +22,7 @@ DECLARE
         employee_firstname VARCHAR(64);
         employee_lastname VARCHAR(64);
 
+
         -- Variables para generar clientes
 		customer_firstname VARCHAR(50);
 		customer_lastname VARCHAR(50);
@@ -35,15 +36,15 @@ DECLARE
         customer_address varchar(255);
 
         total_population INTEGER;
-        relative_populations FLOAT[];
-        city_names varchar[];
+        customer_city_id INTEGER;
+        customer_city_population INTEGER;
+        customer_city_name VARCHAR(128);
+        customer_postal_code VARCHAR;
         city_min_customers INTEGER;
         city_max_customers INTEGER;
-        ith_postal_code VARCHAR;
 
         -- Variables para generar pedidos
         customer_id INTEGER;
-        customer_city_id INTEGER;
         order_address VARCHAR(255);
         days_offset INTEGER;
         order_time_placed TIMESTAMP;
@@ -158,67 +159,68 @@ BEGIN
     -- Calcula la poblacion total de las ciudades
     SELECT SUM(population) INTO total_population FROM us_cities;
 
-    -- Calcula la poblacion relativa de cada ciudad
-    SELECT ARRAY_AGG(population / total_population) INTO relative_populations FROM us_cities;
-	 -- Crea un arreglo con los nombres de la ciudad 
-	SELECT array_agg(city) INTO city_names FROM us_cities;
-
-    FOR i IN 1..array_upper(relative_populations, 1) LOOP
-        -- Calcula el número mínimo y máximo de clientes para esta ciudad
-        IF i = 1 THEN
-            -- La ciudad más poblada tendrá un número máximo de clientes
-            -- igual a la mitad del número total de clientes a generar
-            city_min_customers := 1;
-            city_max_customers := (number_of_customers / 2)::INTEGER;
-        ELSE
-            -- Las otras ciudades tendrán un número mínimo y máximo
-            -- de clientes proporcional a su población relativa
-            city_min_customers := (number_of_customers * relative_populations[i])::INTEGER;
-            city_max_customers := ((number_of_customers * relative_populations[i]) * 2)::INTEGER;
-        END IF;
+    -- Genera los clientes
+    FOR i IN 1..number_of_customers LOOP
+        -- Selecciona una ciudad al azar, ponderando por la población relativa
+        SELECT city
+        FROM us_cities
+        ORDER BY random() * population DESC
+        LIMIT 1 INTO customer_city_name;
         
-        -- Selecciona el código postal de esta ciudad
-        SELECT postal_code INTO ith_postal_code FROM us_cities WHERE city = city_names[i];
+        -- Imprimir el nombre de la ciudad
+        RAISE NOTICE 'Generating customer for %', customer_city_name;
+        
+        -- Calcula el número mínimo y máximo de clientes para la ciudad seleccionada
+        SELECT population
+        FROM us_cities
+        WHERE city = customer_city_name
+        INTO customer_city_population;
+        
+        city_min_customers := (number_of_customers * (customer_city_population / total_population))::INTEGER;
+        city_max_customers := ((number_of_customers * (customer_city_population / total_population)) * 2)::INTEGER;
 
-        -- Genera un número aleatorio de clientes para esta ciudad
-        FOR j IN 1..(random() * (city_max_customers - city_min_customers + 1) + city_min_customers)::INTEGER LOOP
-            -- Selecciona un nombre y apellido aleatorio
-	        SELECT first_name INTO customer_firstname
-            FROM us_first_names
-            ORDER BY RANDOM()
-            LIMIT 1;
+        -- Selecciona el id y el código postal de esta ciudad
+        SELECT id, postal_code
+        INTO customer_city_id, customer_postal_code
+        FROM city
+        WHERE city_name = customer_city_name;
 
-   	        SELECT last_name INTO customer_lastname
-            FROM us_last_names
-            ORDER BY RANDOM()
-            LIMIT 1;
+        -- Selecciona un nombre y apellido aleatorio
+	    SELECT first_name INTO customer_firstname
+        FROM us_first_names
+        ORDER BY RANDOM()
+        LIMIT 1;
 
-            -- Crea el nombre de usuario y contraseña
-            customer_user := CONCAT(LEFT(customer_firstname,2),'',LEFT(customer_lastname, 2),'', CAST(RANDOM() * 100 AS INTEGER));
-            customer_password := MD5(RANDOM()::TEXT);
+   	    SELECT last_name INTO customer_lastname
+        FROM us_last_names
+        ORDER BY RANDOM()
+        LIMIT 1;
 
-            -- Genera un código de confirmación de 5 digitos aleatorio
-            customer_confirmation_code := floor(random() * (99999 - 10000 + 1)) + 10000;
+        -- Crea el nombre de usuario y contraseña
+        customer_user := CONCAT(LEFT(customer_firstname,2),'',LEFT(customer_lastname, 2),'', CAST(RANDOM() * 100 AS INTEGER));
+        customer_password := MD5(RANDOM()::TEXT);
+
+        -- Genera un código de confirmación de 5 digitos aleatorio
+        customer_confirmation_code := floor(random() * (99999 - 10000 + 1)) + 10000;
     
-            -- Genera una fecha y hora aleatoria para time_inserted
-            customer_time_inserted := CURRENT_TIMESTAMP - (CAST(CAST(floor(random() * 24) AS TEXT) || ' hour' AS INTERVAL) + CAST(CAST(floor(random() * 60) AS TEXT) || ' minute' AS INTERVAL));
+        -- Genera una fecha y hora aleatoria para time_inserted
+        customer_time_inserted := CURRENT_TIMESTAMP - (CAST(CAST(floor(random() * 24) AS TEXT) || ' hour' AS INTERVAL) + CAST(CAST(floor(random() * 60) AS TEXT) || ' minute' AS INTERVAL));
 
-            -- Genera una fecha y hora aleatoria para time_confirmed
-            customer_time_confirmed := date_trunc('hour', customer_time_inserted) + CAST(CAST(floor(random() * 48) AS TEXT) || ' hour' AS INTERVAL) + CAST(CAST(floor(random() * 60) AS TEXT) || ' minute' AS INTERVAL);
-	        
-	        -- Crea el correo electrónico
-            customer_email := CONCAT(customer_firstname, '.', customer_lastname, '@correo.com');
+        -- Genera una fecha y hora aleatoria para time_confirmed
+        customer_time_confirmed := date_trunc('hour', customer_time_inserted) + CAST(CAST(floor(random() * 48) AS TEXT) || ' hour' AS INTERVAL) + CAST(CAST(floor(random() * 60) AS TEXT) || ' minute' AS INTERVAL);
+	    
+	    -- Crea el correo electrónico
+        customer_email := CONCAT(customer_firstname, '.', customer_lastname, '@correo.com');
 
-	        -- Genera el número de teléfono
-            SELECT generate_phone_number(ith_postal_code) INTO customer_phone_number;
+	    -- Genera el número de teléfono
+        SELECT generate_phone_number(customer_postal_code) INTO customer_phone_number;
 
-            -- Genera la dirección
-            SELECT generate_address(ith_postal_code, customer_firstname, customer_lastname) INTO customer_address;
+        -- Genera la dirección
+        SELECT generate_address(customer_postal_code, customer_firstname, customer_lastname) INTO customer_address;
 
-	        -- Insertar los datos en la tabla personas
-	        INSERT INTO CUSTOMER (city_id, delivery_city_id, first_name, last_name, user_name,password, time_inserted, confirmation_code, time_confirmed, contact_email, contact_phone, address, delivery_address)
-	        VALUES (i, i, customer_firstname, customer_lastname, customer_user,customer_password,customer_time_inserted, customer_confirmation_code, customer_time_confirmed, customer_email, customer_phone_number, customer_address, customer_address);
-        END LOOP;
+	    -- Insertar los datos en la tabla personas
+	    INSERT INTO CUSTOMER (city_id, delivery_city_id, first_name, last_name, user_name,password, time_inserted, confirmation_code, time_confirmed, contact_email, contact_phone, address, delivery_address)
+	    VALUES (customer_city_id, customer_city_id, customer_firstname, customer_lastname, customer_user,customer_password,customer_time_inserted, customer_confirmation_code, customer_time_confirmed, customer_email, customer_phone_number, customer_address, customer_address);
     END LOOP;
     
     -- SECCION 3
@@ -344,7 +346,7 @@ BEGIN
         -- Itera para cada item_order de este pedido y se colócalo en una caja
         FOR order_item_row IN SELECT * FROM order_item WHERE placed_order_id = placed_order_row.id LOOP
             -- Genera un código único para la caja
-            box_code := CONCAT('BOX-', delivery_row.id, '-', LPAD(i::text, 2, '0'));
+            box_code := CONCAT('BOX-', delivery_row.id, '-', SUBSTRING(md5(random()::text), 1, 3));
 
             INSERT INTO box (delivery_id, employee_id, box_code) 
             VALUES (delivery_row.id, box_employee_id, box_code);

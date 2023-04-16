@@ -54,9 +54,9 @@ port='5432'
 host='localhost'
 database='BDP2_1810536_1610109'
 export PGPASSWORD=$password
-number_of_customers=1000
-number_of_orders=1000
-number_of_items=1000
+number_of_customers=100
+number_of_orders=50
+number_of_items=50
 avg_items_per_order=5.0
 
 # Crea la base de datos
